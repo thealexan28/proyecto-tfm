@@ -1,0 +1,15 @@
+.env
+__pycache__/
+*.pyc
+.venv/
+venv/
+.env.*
+.DS_Store
+data/
+wallet/
+Wallet_*/
+*.pem
+*.sso
+*.jks
+tnsnames.ora
+sqlnet.ora
