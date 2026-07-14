@@ -24,12 +24,12 @@ def format_pct(value):
 
 
 def render_ocupacion_temporada():
-    st.title("📈 Ocupación estimada por temporada")
+    st.title("📈 Estimated occupancy by season")
 
     st.markdown(
         """
-        Comparativa temporal de la no disponibilidad registrada en el calendario.
-        Sirve para detectar picos estacionales y cambios mensuales en la presión de uso.
+        Time-based comparison of unavailability recorded in the calendar.
+        It helps identify seasonal peaks and monthly changes in usage pressure.
         """
     )
 
@@ -41,7 +41,7 @@ def render_ocupacion_temporada():
     ciudades_df = get_ciudades_disponibles()
 
     if ciudades_df.empty:
-        st.warning("No hay ciudades disponibles en la base de datos.")
+        st.warning("No cities are available in the database.")
         return
 
     ciudades = ciudades_df["ciudad"].dropna().sort_values().tolist()
@@ -50,12 +50,12 @@ def render_ocupacion_temporada():
 
     with col_filter_1:
         ciudad_seleccionada = st.selectbox(
-            "Selecciona una ciudad",
-            options=["Todas las ciudades"] + ciudades,
+            "Select a city",
+            options=["All cities"] + ciudades,
             index=0,
         )
 
-    ciudad_param = None if ciudad_seleccionada == "Todas las ciudades" else ciudad_seleccionada
+    ciudad_param = None if ciudad_seleccionada == "All cities" else ciudad_seleccionada
 
     barrio_param = None
 
@@ -65,16 +65,16 @@ def render_ocupacion_temporada():
             barrios = barrios_df["barrio"].dropna().sort_values().tolist()
 
             barrio_seleccionado = st.selectbox(
-                "Selecciona un barrio",
-                options=["Todos los barrios"] + barrios,
+                "Select a neighborhood",
+                options=["All neighborhoods"] + barrios,
                 index=0,
             )
 
-            barrio_param = None if barrio_seleccionado == "Todos los barrios" else barrio_seleccionado
+            barrio_param = None if barrio_seleccionado == "All neighborhoods" else barrio_seleccionado
         else:
             st.selectbox(
-                "Selecciona un barrio",
-                options=["Selecciona primero una ciudad"],
+                "Select a neighborhood",
+                options=["Select a city first"],
                 index=0,
                 disabled=True,
             )
@@ -93,7 +93,7 @@ def render_ocupacion_temporada():
     )
 
     if df_temporada.empty:
-        st.warning("No hay datos disponibles para la selección realizada.")
+        st.warning("No data is available for the selected filters.")
         return
 
     # =========================
@@ -120,34 +120,34 @@ def render_ocupacion_temporada():
     col1, col2, col3 = st.columns(3)
 
     col1.metric(
-        "Ocupación estimada media",
+        "Average estimated occupancy",
         format_pct(ocupacion_media_ponderada),
     )
 
     col2.metric(
-        "Temporada con mayor ocupación",
+        "Season with the highest occupancy",
         fila_max["temporada"],
     )
 
     col3.metric(
-        "Ocupación de esa temporada",
+        "Occupancy in that season",
         format_pct(fila_max["ocupacion_estimada_pct"]),
     )
 
     col4, col5, col6 = st.columns(3)
 
     col4.metric(
-        "Noches analizadas",
+        "Nights analyzed",
         format_number(total_registros),
     )
 
     col5.metric(
-        "Noches no disponibles",
+        "Unavailable nights",
         format_number(total_noches_ocupadas),
     )
 
     col6.metric(
-        "Disponibilidad media",
+        "Average availability",
         format_pct(disponibilidad_media_ponderada),
     )
 
@@ -156,7 +156,7 @@ def render_ocupacion_temporada():
     # =========================
     # Gráfico de barras por temporada
     # =========================
-    st.subheader("Ocupación estimada por temporada")
+    st.subheader("Estimated occupancy by season")
 
     if ciudad_param is None:
         fig_bar = px.bar(
@@ -166,11 +166,11 @@ def render_ocupacion_temporada():
             color="ciudad",
             barmode="group",
             text="ocupacion_estimada_pct",
-            title="Ocupación estimada por temporada y ciudad",
+            title="Estimated occupancy by season and city",
             labels={
-                "temporada": "Temporada",
-                "ocupacion_estimada_pct": "Ocupación estimada (%)",
-                "ciudad": "Ciudad",
+                "temporada": "Season",
+                "ocupacion_estimada_pct": "Estimated occupancy (%)",
+                "ciudad": "City",
             },
         )
     else:
@@ -179,10 +179,10 @@ def render_ocupacion_temporada():
             x="temporada",
             y="ocupacion_estimada_pct",
             text="ocupacion_estimada_pct",
-            title=f"Ocupación estimada por temporada en {ciudad_seleccionada}",
+            title=f"Estimated occupancy by season in {ciudad_seleccionada}",
             labels={
-                "temporada": "Temporada",
-                "ocupacion_estimada_pct": "Ocupación estimada (%)",
+                "temporada": "Season",
+                "ocupacion_estimada_pct": "Estimated occupancy (%)",
             },
         )
 
@@ -192,8 +192,8 @@ def render_ocupacion_temporada():
     )
 
     fig_bar.update_layout(
-        xaxis_title="Temporada",
-        yaxis_title="Ocupación estimada (%)",
+        xaxis_title="Season",
+        yaxis_title="Estimated occupancy (%)",
         yaxis_range=[0, 100],
         height=450,
         margin=dict(l=20, r=20, t=70, b=20),
@@ -206,7 +206,7 @@ def render_ocupacion_temporada():
     # =========================
     # Línea mensual
     # =========================
-    st.subheader("Evolución mensual de la ocupación estimada")
+    st.subheader("Monthly estimated occupancy trend")
 
     if not df_mensual.empty:
         if ciudad_param is None:
@@ -216,11 +216,11 @@ def render_ocupacion_temporada():
                 y="ocupacion_estimada_pct",
                 color="ciudad",
                 markers=True,
-                title="Evolución mensual de la ocupación estimada por ciudad",
+                title="Monthly estimated occupancy trend by city",
                 labels={
-                    "periodo": "Mes",
-                    "ocupacion_estimada_pct": "Ocupación estimada (%)",
-                    "ciudad": "Ciudad",
+                    "periodo": "Month",
+                    "ocupacion_estimada_pct": "Estimated occupancy (%)",
+                    "ciudad": "City",
                 },
             )
         else:
@@ -229,16 +229,16 @@ def render_ocupacion_temporada():
                 x="periodo",
                 y="ocupacion_estimada_pct",
                 markers=True,
-                title=f"Evolución mensual de la ocupación estimada en {ciudad_seleccionada}",
+                title=f"Monthly estimated occupancy trend in {ciudad_seleccionada}",
                 labels={
-                    "periodo": "Mes",
-                    "ocupacion_estimada_pct": "Ocupación estimada (%)",
+                    "periodo": "Month",
+                    "ocupacion_estimada_pct": "Estimated occupancy (%)",
                 },
             )
 
         fig_line.update_layout(
-            xaxis_title="Mes",
-            yaxis_title="Ocupación estimada (%)",
+            xaxis_title="Month",
+            yaxis_title="Estimated occupancy (%)",
             yaxis_range=[0, 100],
             height=450,
             margin=dict(l=20, r=20, t=70, b=20),
@@ -246,14 +246,14 @@ def render_ocupacion_temporada():
 
         st.plotly_chart(fig_line, width="stretch")
     else:
-        st.info("No hay datos mensuales disponibles para la selección realizada.")
+        st.info("No monthly data is available for the selected filters.")
 
     st.divider()
 
     # =========================
     # Tabla de detalle por temporada
     # =========================
-    st.subheader("Tabla de detalle por temporada")
+    st.subheader("Detailed table by season")
 
     tabla = df_temporada.copy()
 
@@ -291,4 +291,4 @@ def render_ocupacion_temporada():
         hide_index=True,
     )
 
-    st.caption("La ocupación estimada representa noches no disponibles en el calendario.")
+    st.caption("Estimated occupancy represents nights marked as unavailable in the calendar.")

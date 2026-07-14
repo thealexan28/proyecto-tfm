@@ -15,17 +15,17 @@ CENTROS_CIUDAD = {
 
 
 def render_mapa_viviendas():
-    st.title("🗺️ Mapa de viviendas turísticas")
+    st.title("🗺️ Short-term rental property map")
 
     st.markdown(
         """
-        Distribución geográfica de los alojamientos turísticos. El mapa ayuda a
-        localizar concentraciones espaciales y consultar el detalle de cada vivienda.
+        Geographic distribution of short-term rental properties. The map helps locate
+        spatial clusters and provides details for each property.
         """
     )
 
     ciudad = st.selectbox(
-        "Selecciona una ciudad",
+        "Select a city",
         ["Madrid", "Málaga", "Sevilla", "Valencia"],
         index=1,
     )
@@ -33,30 +33,30 @@ def render_mapa_viviendas():
     df = get_viviendas_mapa(ciudad=ciudad)
 
     if df.empty:
-        st.warning("No hay viviendas disponibles para la selección realizada.")
+        st.warning("No properties are available for the selected filters.")
         return
 
-    st.subheader("Resumen de la ciudad")
+    st.subheader("City summary")
 
     col1, col2, col3, col4 = st.columns(4)
 
     col1.metric(
-        "Viviendas mostradas",
+        "Properties displayed",
         f"{len(df):,}".replace(",", "."),
     )
 
     col2.metric(
-        "Barrios",
+        "Neighborhoods",
         df["barrio"].nunique(),
     )
 
     col3.metric(
-        "Precio medio diario",
+        "Average daily price",
         f"{df['precio_medio_diario'].mean():,.2f} €".replace(",", "X").replace(".", ",").replace("X", "."),
     )
 
     col4.metric(
-        "Puntuación media",
+        "Average rating",
         f"{df['puntuacion_general'].mean():.2f}",
     )
 
@@ -89,13 +89,13 @@ def render_mapa_viviendas():
         "html": """
         <div style="margin:0; padding:0; line-height:1.15; font-size:13px;">
           <div style="font-weight:700; margin-bottom:4px;">{nombre_anuncio}</div>
-          <div><b>Ciudad:</b> {ciudad} | <b>Barrio:</b> {barrio}</div>
-          <div><b>Habitación:</b> {tipo_habitacion} | <b>Propiedad:</b> {tipo_propiedad}</div>
-          <div><b>Capacidad:</b> {capacidad_huespedes} huéspedes</div>
-          <div><b>Anfitrión:</b> {nombre_anfitrion}</div>
-          <div><b>Puntuación:</b> {puntuacion_general}</div>
-          <div><b>Precio:</b> {precio_medio_diario} € | <b>Disp.:</b> {disponibilidad_pct} %</div>
-          <div><b>Ocupación:</b> {ocupacion_estimada_pct} % | <b>Ingreso:</b> {ingreso_potencial_total} €</div>
+          <div><b>City:</b> {ciudad} | <b>Neighborhood:</b> {barrio}</div>
+          <div><b>Room:</b> {tipo_habitacion} | <b>Property:</b> {tipo_propiedad}</div>
+          <div><b>Capacity:</b> {capacidad_huespedes} guests</div>
+          <div><b>Host:</b> {nombre_anfitrion}</div>
+          <div><b>Rating:</b> {puntuacion_general}</div>
+          <div><b>Price:</b> {precio_medio_diario} € | <b>Avail.:</b> {disponibilidad_pct} %</div>
+          <div><b>Occupancy:</b> {ocupacion_estimada_pct} % | <b>Revenue:</b> {ingreso_potencial_total} €</div>
         </div>
         """,
         "style": {
@@ -114,9 +114,9 @@ def render_mapa_viviendas():
         map_style=CARTO_VOYAGER_STYLE,
     )
 
-    st.subheader("Mapa de alojamientos")
+    st.subheader("Property map")
     st.pydeck_chart(deck, width="stretch", key=f"mapa-{ciudad}")
 
-    st.subheader("Detalle de viviendas")
+    st.subheader("Property details")
     columnas_detalle = [col for col in df.columns if col != "id_vivienda"]
     st.dataframe(df[columnas_detalle], width="stretch", hide_index=True)

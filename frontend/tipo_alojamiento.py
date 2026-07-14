@@ -70,12 +70,12 @@ def buscar_habitacion_privada(df):
 
 
 def render_tipo_alojamiento():
-    st.title("🏘️ Análisis por tipo de alojamiento")
+    st.title("🏘️ Analysis by property type")
 
     st.markdown(
         """
-        Compara precio, disponibilidad, capacidad e ingreso potencial por tipo de
-        habitación o propiedad.
+        Compares price, availability, capacity, and potential revenue by room
+        or property type.
         """
     )
 
@@ -202,7 +202,7 @@ def render_tipo_alojamiento():
     # Comparación viviendas completas vs habitaciones privadas
     # =========================
     if agrupar_por == "tipo_habitacion":
-        st.subheader("Viviendas completas frente a habitaciones privadas")
+        st.subheader("Entire homes vs private rooms")
 
         fila_completa = buscar_vivienda_completa(df_tipo)
         fila_privada = buscar_habitacion_privada(df_tipo)
@@ -379,7 +379,7 @@ def render_tipo_alojamiento():
     # =========================
     # Capacidad vs precio
     # =========================
-    st.subheader("¿Los alojamientos con mayor capacidad tienen mayor precio medio?")
+    st.subheader("Do higher-capacity properties have a higher average price?")
 
     if df_capacidad.empty:
         st.info(

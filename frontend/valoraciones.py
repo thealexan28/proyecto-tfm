@@ -106,12 +106,12 @@ def crear_muestra_scatter(df, max_por_ciudad=250):
 
 
 def render_valoraciones():
-    st.title("⭐ Análisis de valoraciones")
+    st.title("⭐ Ratings analysis")
 
     st.markdown(
         """
-        Explora la relación entre valoración, precio, disponibilidad, volumen de
-        reseñas y reserva instantánea.
+        Explores the relationship between ratings, price, availability, review
+        volume, and instant booking.
         """
     )
 
@@ -242,7 +242,7 @@ def render_valoraciones():
     # =========================
     # Barrios mejor valorados
     # =========================
-    st.subheader("¿Qué barrios tienen alojamientos mejor valorados?")
+    st.subheader("Which neighborhoods have the highest-rated properties?")
 
     if not barrios_df.empty:
         if ciudad_param is None:
@@ -298,7 +298,7 @@ def render_valoraciones():
     # =========================
     # Puntuación vs precio
     # =========================
-    st.subheader("¿Existe relación entre puntuación media y precio?")
+    st.subheader("Is there a relationship between average rating and price?")
 
     fig_precio = px.scatter(
         viviendas_scatter_df,
@@ -365,7 +365,7 @@ def render_valoraciones():
     # =========================
     # Volumen de reseñas vs no disponibilidad
     # =========================
-    st.subheader("¿Los alojamientos con mayor volumen de reseñas tienen más no disponibilidad?")
+    st.subheader("Do properties with more reviews have higher unavailability?")
 
     tramos_df = (
         viviendas_volumen_df.groupby(["volumen_resenas", "orden_volumen"], observed=True)
@@ -427,7 +427,7 @@ def render_valoraciones():
     # =========================
     # Reserva instantánea
     # =========================
-    st.subheader("¿Los alojamientos con reserva instantánea tienen mayor disponibilidad?")
+    st.subheader("Do properties with instant booking have higher availability?")
 
     if not reserva_df.empty:
         reserva_melt = reserva_df.melt(
@@ -494,7 +494,7 @@ def render_valoraciones():
     # =========================
     # Tabla detalle
     # =========================
-    st.subheader("Tabla de detalle de alojamientos valorados")
+    st.subheader("Detailed table of rated properties")
 
     tabla = viviendas_df.copy()
 

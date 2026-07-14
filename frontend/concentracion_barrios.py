@@ -15,12 +15,12 @@ def format_number(value):
 
 
 def render_concentracion_barrios():
-    st.title("📍 Concentración de pisos turísticos por barrio")
+    st.title("📍 Short-term rental concentration by neighborhood")
 
     st.markdown(
         """
-        Ranking de barrios por volumen de viviendas turísticas. Permite detectar
-        las zonas donde la oferta se concentra con mayor intensidad.
+        Neighborhood ranking by number of short-term rental properties. It highlights
+        the areas where supply is most heavily concentrated.
         """
     )
 
@@ -32,7 +32,7 @@ def render_concentracion_barrios():
     ciudades_df = get_ciudades_disponibles()
 
     if ciudades_df.empty:
-        st.warning("No hay ciudades disponibles en la base de datos.")
+        st.warning("No cities are available in the database.")
         return
 
     ciudades = ciudades_df["ciudad"].dropna().sort_values().tolist()
@@ -41,21 +41,21 @@ def render_concentracion_barrios():
 
     with col_filter_1:
         ciudad_seleccionada = st.selectbox(
-            "Selecciona una ciudad",
-            options=["Todas las ciudades"] + ciudades,
+            "Select a city",
+            options=["All cities"] + ciudades,
             index=0,
         )
 
     with col_filter_2:
         limite = st.slider(
-            "Número de barrios a mostrar",
+            "Number of neighborhoods to display",
             min_value=5,
             max_value=30,
             value=15,
             step=5,
         )
 
-    ciudad_param = None if ciudad_seleccionada == "Todas las ciudades" else ciudad_seleccionada
+    ciudad_param = None if ciudad_seleccionada == "All cities" else ciudad_seleccionada
 
     # =========================
     # Carga de datos
@@ -66,16 +66,16 @@ def render_concentracion_barrios():
     )
 
     if df.empty:
-        st.warning("No hay datos disponibles para la selección realizada.")
+        st.warning("No data is available for the selected filters.")
         return
 
     # Campo auxiliar para que el gráfico sea claro cuando no se selecciona ciudad
     if ciudad_param is None:
         df["zona"] = df["barrio"] + " (" + df["ciudad"] + ")"
-        titulo_grafico = f"Top {limite} barrios con más viviendas turísticas"
+        titulo_grafico = f"Top {limite} neighborhoods by number of short-term rentals"
     else:
         df["zona"] = df["barrio"]
-        titulo_grafico = f"Top {limite} barrios con más viviendas turísticas en {ciudad_seleccionada}"
+        titulo_grafico = f"Top {limite} neighborhoods by number of short-term rentals in {ciudad_seleccionada}"
 
     # =========================
     # KPIs
@@ -89,28 +89,28 @@ def render_concentracion_barrios():
     col1, col2, col3 = st.columns(3)
 
     col1.metric(
-        "Viviendas en el ranking",
+        "Properties in the ranking",
         format_number(total_viviendas_top),
     )
 
     col2.metric(
-        "Barrio con más viviendas",
+        "Neighborhood with the most properties",
         barrio_top,
     )
 
     col3.metric(
-        "Peso del barrio líder",
+        "Leading neighborhood share",
         f"{peso_top:.2f} %",
         format_number(viviendas_top),
     )
 
     if ciudad_param is None:
         st.caption(
-            f"El barrio con mayor concentración es **{barrio_top}**, en **{ciudad_top}**."
+            f"The neighborhood with the highest concentration is **{barrio_top}**, in **{ciudad_top}**."
         )
     else:
         st.caption(
-            f"En **{ciudad_seleccionada}**, el barrio con mayor concentración es **{barrio_top}**."
+            f"In **{ciudad_seleccionada}**, the neighborhood with the highest concentration is **{barrio_top}**."
         )
 
     st.divider()
@@ -118,7 +118,7 @@ def render_concentracion_barrios():
     # =========================
     # Gráfico de barras
     # =========================
-    st.subheader("Ranking de barrios")
+    st.subheader("Neighborhood ranking")
 
     df_chart = df.sort_values("num_viviendas", ascending=True)
 
@@ -130,8 +130,8 @@ def render_concentracion_barrios():
         text="num_viviendas",
         title=titulo_grafico,
         labels={
-            "num_viviendas": "Número de viviendas turísticas",
-            "zona": "Barrio",
+            "num_viviendas": "Number of short-term rental properties",
+            "zona": "Neighborhood",
         },
         hover_data={
             "ciudad": True,
@@ -149,8 +149,8 @@ def render_concentracion_barrios():
     )
 
     fig.update_layout(
-        xaxis_title="Número de viviendas turísticas",
-        yaxis_title="Barrio",
+        xaxis_title="Number of short-term rental properties",
+        yaxis_title="Neighborhood",
         height=max(450, limite * 32),
         margin=dict(l=20, r=20, t=70, b=20),
     )
@@ -162,30 +162,30 @@ def render_concentracion_barrios():
     # =========================
     # Tabla de detalle
     # =========================
-    st.subheader("Tabla de detalle")
+    st.subheader("Detailed table")
 
     tabla = df.copy()
 
     tabla = tabla.rename(
         columns={
-            "ciudad": "Ciudad",
-            "barrio": "Barrio",
-            "num_viviendas": "Nº viviendas turísticas",
-            "porcentaje_sobre_ciudad": "% sobre ciudad",
-            "registros_calendario": "Noches analizadas",
-            "precio_medio_diario": "Precio medio diario",
-            "tasa_disponibilidad_pct": "Disponibilidad media (%)",
+            "ciudad": "City",
+            "barrio": "Neighborhood",
+            "num_viviendas": "No. of short-term rental properties",
+            "porcentaje_sobre_ciudad": "% of city total",
+            "registros_calendario": "Nights analyzed",
+            "precio_medio_diario": "Average daily price",
+            "tasa_disponibilidad_pct": "Average availability (%)",
         }
     )
 
     columnas = [
-        "Ciudad",
-        "Barrio",
-        "Nº viviendas turísticas",
-        "% sobre ciudad",
-        "Noches analizadas",
-        "Precio medio diario",
-        "Disponibilidad media (%)",
+        "City",
+        "Neighborhood",
+        "No. of short-term rental properties",
+        "% of city total",
+        "Nights analyzed",
+        "Average daily price",
+        "Average availability (%)",
     ]
 
     st.dataframe(
@@ -194,4 +194,4 @@ def render_concentracion_barrios():
         hide_index=True,
     )
 
-    st.caption("El ranking usa viviendas únicas para evitar duplicados del calendario diario.")
+    st.caption("The ranking uses unique properties to prevent duplicates from the daily calendar.")

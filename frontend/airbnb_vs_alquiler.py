@@ -24,12 +24,12 @@ def format_ratio(value):
 
 
 def render_airbnb_vs_alquiler():
-    st.title("🏠 Airbnb frente al alquiler habitual")
+    st.title("🏠 Airbnb vs long-term rentals")
 
     st.markdown(
         """
-        Compara el precio medio de Airbnb mensualizado con el alquiler habitual municipal.
-        La vista permite detectar ciudades y barrios donde la brecha de precio es mayor.
+        Compares monthly Airbnb revenue with municipal long-term rent.
+        This view highlights the cities and neighborhoods with the largest price gap.
         """
     )
 
@@ -89,7 +89,7 @@ def render_airbnb_vs_alquiler():
     # =========================
     # BLOQUE 1: comparación principal ciudad
     # =========================
-    st.subheader("Brecha mensual por ciudad")
+    st.subheader("Monthly gap by city")
 
     if ciudad_param is None:
         df_plot = df_ciudad[
@@ -239,7 +239,7 @@ def render_airbnb_vs_alquiler():
     # =========================
     # BLOQUE 2: contexto residencial municipal
     # =========================
-    st.subheader("Contexto residencial municipal")
+    st.subheader("Municipal housing context")
 
     contexto_cols = [
         "ciudad",
@@ -278,7 +278,7 @@ def render_airbnb_vs_alquiler():
     # =========================
     # BLOQUE 3: barrios frente a referencia municipal
     # =========================
-    st.subheader("Barrios frente a la referencia municipal")
+    st.subheader("Neighborhoods vs the municipal benchmark")
 
     if df_barrios.empty:
         st.warning("No hay datos por barrio para la selección realizada.")
@@ -342,7 +342,7 @@ def render_airbnb_vs_alquiler():
     # =========================
     # BLOQUE 4: relación concentración-precio
     # =========================
-    st.subheader("Relación entre concentración y precio Airbnb")
+    st.subheader("Relationship between concentration and Airbnb price")
 
     if not df_barrios.empty:
         fig_scatter = px.scatter(
@@ -375,7 +375,7 @@ def render_airbnb_vs_alquiler():
     # =========================
     # BLOQUE 5: tabla detalle barrios
     # =========================
-    st.subheader("Tabla de detalle por barrio")
+    st.subheader("Detailed table by neighborhood")
 
     if not df_barrios.empty:
         tabla = df_barrios.copy()

@@ -52,12 +52,12 @@ def crear_etiquetas_anfitrion(df):
 
 
 def render_anfitriones():
-    st.title("👤 Análisis de anfitriones")
+    st.title("👤 Host analysis")
 
     st.markdown(
         """
-        Analiza la concentración de viviendas por anfitrión y compara precios,
-        disponibilidad e ingreso potencial entre perfiles de gestión.
+        Analyzes property concentration by host and compares prices,
+        availability, and potential revenue across management profiles.
         """
     )
 
@@ -166,7 +166,7 @@ def render_anfitriones():
     # =========================
     # Top anfitriones
     # =========================
-    st.subheader("¿Qué anfitriones concentran más viviendas?")
+    st.subheader("Which hosts manage the most properties?")
 
     if not top_df.empty:
         df_top = crear_etiquetas_anfitrion(top_df)
@@ -210,7 +210,7 @@ def render_anfitriones():
     # =========================
     # Superhost disponibilidad
     # =========================
-    st.subheader("¿Los superhost tienen mayor disponibilidad o no disponibilidad?")
+    st.subheader("Do Superhosts have higher availability or unavailability?")
 
     if not superhost_df.empty:
         df_superhost_melt = superhost_df.melt(
@@ -261,7 +261,7 @@ def render_anfitriones():
     # =========================
     # Grandes tenedores vs particulares
     # =========================
-    st.subheader("¿Los grandes tenedores tienen precios más altos que los anfitriones particulares?")
+    st.subheader("Do large-scale owners charge higher prices than individual hosts?")
 
     if not tenedores_df.empty:
         fig_precio = px.bar(
@@ -315,7 +315,7 @@ def render_anfitriones():
     # =========================
     # Tabla detalle
     # =========================
-    st.subheader("Tabla de detalle de anfitriones")
+    st.subheader("Detailed host table")
 
     if not top_df.empty:
         tabla = crear_etiquetas_anfitrion(top_df)
