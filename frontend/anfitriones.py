@@ -39,10 +39,10 @@ def format_pct(value):
 
 def crear_etiquetas_anfitrion(df):
     df = df.copy()
-    nombres = df["nombre_anfitrion"].fillna("Sin nombre")
+    nombres = df["nombre_anfitrion"].fillna("Unnamed")
     nombres_duplicados = nombres.duplicated(keep=False)
     ids = df["id_anfitrion"].apply(
-        lambda value: str(int(value)) if pd.notna(value) else "desconocido"
+        lambda value: str(int(value)) if pd.notna(value) else "unknown"
     )
     df["etiqueta"] = nombres.where(
         ~nombres_duplicados,
@@ -66,7 +66,7 @@ def render_anfitriones():
     ciudades_df = get_ciudades_disponibles()
 
     if ciudades_df.empty:
-        st.warning("No hay ciudades disponibles en la base de datos.")
+        st.warning("No cities are available in the database.")
         return
 
     ciudades = ciudades_df["ciudad"].dropna().sort_values().tolist()
@@ -75,14 +75,14 @@ def render_anfitriones():
 
     with col1:
         ciudad_seleccionada = st.selectbox(
-            "Selecciona una ciudad",
-            options=["Todas las ciudades"] + ciudades,
+            "Select a city",
+            options=["All cities"] + ciudades,
             index=0,
         )
 
     with col2:
         umbral_gran_tenedor = st.slider(
-            "Umbral gran tenedor",
+            "Large-scale owner threshold",
             min_value=2,
             max_value=20,
             value=5,
@@ -91,7 +91,7 @@ def render_anfitriones():
 
     with col3:
         limite = st.slider(
-            "Anfitriones a mostrar",
+            "Hosts to display",
             min_value=5,
             max_value=30,
             value=15,
@@ -100,7 +100,7 @@ def render_anfitriones():
 
     ciudad_param = (
         None
-        if ciudad_seleccionada == "Todas las ciudades"
+        if ciudad_seleccionada == "All cities"
         else ciudad_seleccionada
     )
 
@@ -124,7 +124,7 @@ def render_anfitriones():
     )
 
     if resumen_df.empty:
-        st.warning("No hay datos disponibles para la selección realizada.")
+        st.warning("No data is available for the selected filters.")
         return
 
     resumen = resumen_df.iloc[0]
@@ -132,33 +132,33 @@ def render_anfitriones():
     # =========================
     # Respuestas principales
     # =========================
-    st.subheader("Indicadores clave")
+    st.subheader("Key indicators")
 
     col1, col2, col3, col4 = st.columns(4)
 
     col1.metric(
-        "Anfitriones",
+        "Hosts",
         format_number(resumen["total_anfitriones"]),
     )
 
     col2.metric(
-        "Viviendas",
+        "Properties",
         format_number(resumen["total_viviendas"]),
     )
 
     col3.metric(
-        "Grandes tenedores",
+        "Large-scale owners",
         format_number(resumen["total_grandes_tenedores"]),
     )
 
     col4.metric(
-        "Viviendas en grandes tenedores",
+        "Properties managed by large-scale owners",
         format_pct(resumen["pct_viviendas_grandes_tenedores"]),
         format_number(resumen["viviendas_grandes_tenedores"]),
     )
 
     st.caption(
-        f"Umbral activo: gran tenedor = {umbral_gran_tenedor} o más viviendas."
+        f"Active threshold: large-scale owner = {umbral_gran_tenedor} or more properties."
     )
 
     st.divider()
@@ -179,10 +179,10 @@ def render_anfitriones():
             y="etiqueta",
             orientation="h",
             text="num_viviendas",
-            title=f"Top {limite} anfitriones por número de viviendas",
+            title=f"Top {limite} hosts by number of properties",
             labels={
-                "num_viviendas": "Número de viviendas",
-                "etiqueta": "Anfitrión",
+                "num_viviendas": "Number of properties",
+                "etiqueta": "Host",
             },
             hover_data={
                 "es_superhost": True,
@@ -198,8 +198,8 @@ def render_anfitriones():
 
         fig_top.update_layout(
             height=max(450, limite * 34),
-            xaxis_title="Número de viviendas",
-            yaxis_title="Anfitrión",
+            xaxis_title="Number of properties",
+            yaxis_title="Host",
             margin=dict(l=20, r=20, t=70, b=20),
         )
 
@@ -216,28 +216,28 @@ def render_anfitriones():
         df_superhost_melt = superhost_df.melt(
             id_vars=["tipo_anfitrion", "num_anfitriones", "num_viviendas"],
             value_vars=["disponibilidad_pct", "no_disponibilidad_pct"],
-            var_name="Métrica",
-            value_name="Porcentaje",
+            var_name="Metric",
+            value_name="Percentage",
         )
 
-        df_superhost_melt["Métrica"] = df_superhost_melt["Métrica"].replace(
+        df_superhost_melt["Metric"] = df_superhost_melt["Metric"].replace(
             {
-                "disponibilidad_pct": "Disponibilidad",
-                "no_disponibilidad_pct": "No disponibilidad",
+                "disponibilidad_pct": "Availability",
+                "no_disponibilidad_pct": "Unavailability",
             }
         )
 
         fig_superhost = px.bar(
             df_superhost_melt,
             x="tipo_anfitrion",
-            y="Porcentaje",
-            color="Métrica",
+            y="Percentage",
+            color="Metric",
             barmode="group",
-            text="Porcentaje",
-            title="Disponibilidad y no disponibilidad según tipo de anfitrión",
+            text="Percentage",
+            title="Availability and unavailability by host type",
             labels={
-                "tipo_anfitrion": "Tipo de anfitrión",
-                "Porcentaje": "Porcentaje (%)",
+                "tipo_anfitrion": "Host type",
+                "Percentage": "Percentage (%)",
             },
         )
 
@@ -250,7 +250,7 @@ def render_anfitriones():
             height=450,
             yaxis_range=[0, 100],
             xaxis_title="",
-            yaxis_title="Porcentaje (%)",
+            yaxis_title="Percentage (%)",
             margin=dict(l=20, r=20, t=70, b=20),
         )
 
@@ -269,10 +269,10 @@ def render_anfitriones():
             x="tipo_tenedor",
             y="precio_medio_diario",
             text="precio_medio_diario",
-            title="Precio medio diario según tipo de tenedor",
+            title="Average daily price by owner type",
             labels={
-                "tipo_tenedor": "Tipo de anfitrión",
-                "precio_medio_diario": "Precio medio diario (€)",
+                "tipo_tenedor": "Host type",
+                "precio_medio_diario": "Average daily price (€)",
             },
             hover_data={
                 "num_anfitriones": True,
@@ -291,7 +291,7 @@ def render_anfitriones():
         fig_precio.update_layout(
             height=430,
             xaxis_title="",
-            yaxis_title="Precio medio diario (€)",
+            yaxis_title="Average daily price (€)",
             margin=dict(l=20, r=20, t=70, b=20),
         )
 
@@ -305,8 +305,8 @@ def render_anfitriones():
 
             st.info(
                 f"""
-                El grupo con mayor precio medio diario es **{mayor_precio['tipo_tenedor']}**
-                con **{format_currency_dec(mayor_precio['precio_medio_diario'])}**.
+                The group with the highest average daily price is **{mayor_precio['tipo_tenedor']}**
+                at **{format_currency_dec(mayor_precio['precio_medio_diario'])}**.
                 """
             )
 
@@ -322,24 +322,24 @@ def render_anfitriones():
 
         tabla = tabla.rename(
             columns={
-                "etiqueta": "Anfitrión",
+                "etiqueta": "Host",
                 "es_superhost": "Superhost",
-                "num_viviendas": "Nº viviendas",
-                "precio_medio_diario": "Precio medio diario",
-                "disponibilidad_pct": "Disponibilidad (%)",
-                "no_disponibilidad_pct": "No disponibilidad (%)",
-                "ingreso_potencial_total": "Ingreso potencial total",
+                "num_viviendas": "No. of properties",
+                "precio_medio_diario": "Average daily price",
+                "disponibilidad_pct": "Availability (%)",
+                "no_disponibilidad_pct": "Unavailability (%)",
+                "ingreso_potencial_total": "Total potential revenue",
             }
         )
 
         columnas = [
-            "Anfitrión",
+            "Host",
             "Superhost",
-            "Nº viviendas",
-            "Precio medio diario",
-            "Disponibilidad (%)",
-            "No disponibilidad (%)",
-            "Ingreso potencial total",
+            "No. of properties",
+            "Average daily price",
+            "Availability (%)",
+            "Unavailability (%)",
+            "Total potential revenue",
         ]
 
         st.dataframe(

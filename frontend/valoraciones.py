@@ -38,8 +38,8 @@ def format_pct(value):
 
 def crear_orden_volumen_resenas(df):
     """
-    Convierte el campo categórico volumen_resenas en un orden numérico
-    para poder representar una tendencia.
+    Converts the categorical volumen_resenas field into a numeric order
+    so a trend can be plotted.
     """
 
     df = df.copy()
@@ -67,7 +67,7 @@ def crear_orden_volumen_resenas(df):
 
         return 50
 
-    df["volumen_resenas"] = df["volumen_resenas"].fillna("Sin clasificar")
+    df["volumen_resenas"] = df["volumen_resenas"].fillna("Unclassified")
     df["orden_volumen"] = df["volumen_resenas"].apply(calcular_orden)
 
     return df
@@ -123,7 +123,7 @@ def render_valoraciones():
     ciudades_df = get_ciudades_disponibles()
 
     if ciudades_df.empty:
-        st.warning("No hay ciudades disponibles en la base de datos.")
+        st.warning("No cities are available in the database.")
         return
 
     ciudades = ciudades_df["ciudad"].dropna().sort_values().tolist()
@@ -132,14 +132,14 @@ def render_valoraciones():
 
     with col1:
         ciudad_seleccionada = st.selectbox(
-            "Selecciona una ciudad",
-            options=["Todas las ciudades"] + ciudades,
+            "Select a city",
+            options=["All cities"] + ciudades,
             index=0,
         )
 
     with col2:
         limite = st.slider(
-            "Barrios a mostrar",
+            "Neighborhoods to display",
             min_value=5,
             max_value=30,
             value=15,
@@ -148,7 +148,7 @@ def render_valoraciones():
 
     with col3:
         min_viviendas = st.slider(
-            "Mínimo viviendas por barrio",
+            "Minimum properties per neighborhood",
             min_value=1,
             max_value=50,
             value=10,
@@ -157,7 +157,7 @@ def render_valoraciones():
 
     ciudad_param = (
         None
-        if ciudad_seleccionada == "Todas las ciudades"
+        if ciudad_seleccionada == "All cities"
         else ciudad_seleccionada
     )
 
@@ -179,7 +179,7 @@ def render_valoraciones():
     )
 
     if viviendas_df.empty:
-        st.warning("No hay datos de valoraciones disponibles para la selección realizada.")
+        st.warning("No rating data is available for the selected filters.")
         return
 
     viviendas_volumen_df = crear_orden_volumen_resenas(viviendas_df)
@@ -189,7 +189,7 @@ def render_valoraciones():
     # =========================
     # KPIs principales
     # =========================
-    st.subheader("Indicadores clave")
+    st.subheader("Key indicators")
 
     puntuacion_media = viviendas_df["puntuacion_general"].mean()
     precio_medio = viviendas_df["precio_medio_diario"].mean()
@@ -206,34 +206,34 @@ def render_valoraciones():
     col1, col2, col3, col4 = st.columns(4)
 
     col1.metric(
-        "Puntuación media",
+        "Average rating",
         f"{puntuacion_media:.2f}" if not pd.isna(puntuacion_media) else "-",
     )
 
     col2.metric(
-        "Precio medio",
+        "Average price",
         format_currency_dec(precio_medio),
     )
 
     col3.metric(
-        "No disponibilidad media",
+        "Average unavailability",
         format_pct(no_disp_media),
     )
 
     col4.metric(
-        "Viviendas valoradas",
+        "Rated properties",
         format_number(len(viviendas_df)),
     )
 
     col5, col6 = st.columns(2)
 
     col5.metric(
-        "Correlación puntuación-precio",
+        "Rating-price correlation",
         f"{corr_puntuacion_precio:.2f}" if not pd.isna(corr_puntuacion_precio) else "-",
     )
 
     col6.metric(
-        "Correlación reseñas-no disponibilidad",
+        "Reviews-unavailability correlation",
         f"{corr_resenas_no_disp:.2f}" if not pd.isna(corr_resenas_no_disp) else "-",
     )
 
@@ -258,10 +258,10 @@ def render_valoraciones():
             y="zona",
             orientation="h",
             text="puntuacion_media",
-            title=f"Top {limite} barrios por puntuación media",
+            title=f"Top {limite} neighborhoods by average rating",
             labels={
-                "puntuacion_media": "Puntuación media",
-                "zona": "Barrio",
+                "puntuacion_media": "Average rating",
+                "zona": "Neighborhood",
             },
             hover_data={
                 "num_viviendas": True,
@@ -279,19 +279,19 @@ def render_valoraciones():
 
         fig_barrios.update_layout(
             height=max(450, limite * 34),
-            xaxis_title="Puntuación media",
-            yaxis_title="Barrio",
+            xaxis_title="Average rating",
+            yaxis_title="Neighborhood",
             margin=dict(l=20, r=20, t=70, b=20),
         )
 
         st.plotly_chart(fig_barrios, width="stretch")
 
         st.caption(
-            "El ranking solo incluye barrios que cumplen el mínimo de viviendas seleccionado."
+            "The ranking only includes neighborhoods that meet the selected minimum property count."
         )
 
     else:
-        st.info("No hay barrios suficientes con el mínimo de viviendas seleccionado.")
+        st.info("Not enough neighborhoods meet the selected minimum property count.")
 
     st.divider()
 
@@ -314,11 +314,11 @@ def render_valoraciones():
         },
         opacity=0.85,
         render_mode="webgl",
-        title="Relación entre puntuación general y precio medio diario",
+        title="Relationship between overall rating and average daily price",
         labels={
-            "puntuacion_general": "Puntuación general",
-            "precio_medio_diario": "Precio medio diario (€)",
-            "ciudad": "Ciudad",
+            "puntuacion_general": "Overall rating",
+            "precio_medio_diario": "Average daily price (€)",
+            "ciudad": "City",
         },
         hover_data={
             "barrio": True,
@@ -337,28 +337,28 @@ def render_valoraciones():
 
     fig_precio.update_layout(
         height=500,
-        xaxis_title="Puntuación general",
-        yaxis_title="Precio medio diario (€)",
-        legend_title_text="Ciudad",
+        xaxis_title="Overall rating",
+        yaxis_title="Average daily price (€)",
+        legend_title_text="City",
         hovermode="closest",
         margin=dict(l=20, r=20, t=70, b=20),
     )
 
     st.plotly_chart(fig_precio, width="stretch")
     st.caption(
-        "Muestra reproducible de hasta 250 viviendas por ciudad; "
-        "la correlación se calcula con todos los registros válidos."
+        "Reproducible sample of up to 250 properties per city; "
+        "the correlation is calculated using all valid records."
     )
 
     if not pd.isna(corr_puntuacion_precio):
         if corr_puntuacion_precio >= 0.4:
-            st.success("Se observa una relación positiva entre puntuación y precio.")
+            st.success("A positive relationship between rating and price is observed.")
         elif corr_puntuacion_precio > 0:
-            st.info("La relación entre puntuación y precio es positiva, pero débil.")
+            st.info("The relationship between rating and price is positive but weak.")
         elif corr_puntuacion_precio < 0:
-            st.warning("No se observa una relación positiva; la correlación es negativa.")
+            st.warning("No positive relationship is observed; the correlation is negative.")
         else:
-            st.info("No se observa una relación clara entre puntuación y precio.")
+            st.info("No clear relationship between rating and price is observed.")
 
     st.divider()
 
@@ -383,10 +383,10 @@ def render_valoraciones():
         x="volumen_resenas",
         y="no_disponibilidad_pct",
         markers=True,
-        title="No disponibilidad media según volumen de reseñas",
+        title="Average unavailability by review volume",
         labels={
-            "volumen_resenas": "Volumen de reseñas",
-            "no_disponibilidad_pct": "No disponibilidad media (%)",
+            "volumen_resenas": "Review volume",
+            "no_disponibilidad_pct": "Average unavailability (%)",
         },
         hover_data={
             "num_viviendas": True,
@@ -398,8 +398,8 @@ def render_valoraciones():
 
     fig_resenas.update_layout(
         height=470,
-        xaxis_title="Volumen de reseñas",
-        yaxis_title="No disponibilidad media (%)",
+        xaxis_title="Review volume",
+        yaxis_title="Average unavailability (%)",
         yaxis_range=[0, 100],
         margin=dict(l=20, r=20, t=70, b=20),
     )
@@ -409,18 +409,18 @@ def render_valoraciones():
     if not pd.isna(corr_resenas_no_disp):
         if corr_resenas_no_disp >= 0.4:
             st.success(
-                "Los alojamientos con mayor volumen de reseñas tienden a presentar mayor no disponibilidad."
+                "Properties with more reviews tend to have higher unavailability."
             )
         elif corr_resenas_no_disp > 0:
             st.info(
-                "La relación entre volumen de reseñas y no disponibilidad es positiva, pero débil."
+                "The relationship between review volume and unavailability is positive but weak."
             )
         elif corr_resenas_no_disp < 0:
             st.warning(
-                "No se observa una relación positiva; la correlación es negativa."
+                "No positive relationship is observed; the correlation is negative."
             )
         else:
-            st.info("No se observa una relación clara entre volumen de reseñas y no disponibilidad.")
+            st.info("No clear relationship between review volume and unavailability is observed.")
 
     st.divider()
 
@@ -433,28 +433,28 @@ def render_valoraciones():
         reserva_melt = reserva_df.melt(
             id_vars=["tipo_reserva", "num_viviendas"],
             value_vars=["disponibilidad_pct", "no_disponibilidad_pct"],
-            var_name="Métrica",
-            value_name="Porcentaje",
+            var_name="Metric",
+            value_name="Percentage",
         )
 
-        reserva_melt["Métrica"] = reserva_melt["Métrica"].replace(
+        reserva_melt["Metric"] = reserva_melt["Metric"].replace(
             {
-                "disponibilidad_pct": "Disponibilidad",
-                "no_disponibilidad_pct": "No disponibilidad",
+                "disponibilidad_pct": "Availability",
+                "no_disponibilidad_pct": "Unavailability",
             }
         )
 
         fig_reserva = px.bar(
             reserva_melt,
             x="tipo_reserva",
-            y="Porcentaje",
-            color="Métrica",
+            y="Percentage",
+            color="Metric",
             barmode="group",
-            text="Porcentaje",
-            title="Disponibilidad según reserva instantánea",
+            text="Percentage",
+            title="Availability by instant-booking status",
             labels={
-                "tipo_reserva": "Tipo de reserva",
-                "Porcentaje": "Porcentaje (%)",
+                "tipo_reserva": "Booking type",
+                "Percentage": "Percentage (%)",
             },
         )
 
@@ -467,7 +467,7 @@ def render_valoraciones():
             height=450,
             yaxis_range=[0, 100],
             xaxis_title="",
-            yaxis_title="Porcentaje (%)",
+            yaxis_title="Percentage (%)",
             margin=dict(l=20, r=20, t=70, b=20),
         )
 
@@ -481,13 +481,13 @@ def render_valoraciones():
 
             st.info(
                 f"""
-                El grupo con mayor disponibilidad media es **{mayor_disp['tipo_reserva']}**
-                con **{format_pct(mayor_disp['disponibilidad_pct'])}**.
+                The group with the highest average availability is **{mayor_disp['tipo_reserva']}**
+                at **{format_pct(mayor_disp['disponibilidad_pct'])}**.
                 """
             )
 
     else:
-        st.info("No hay datos suficientes sobre reserva instantánea.")
+        st.info("There is not enough instant-booking data.")
 
     st.divider()
 
@@ -500,28 +500,28 @@ def render_valoraciones():
 
     tabla = tabla.rename(
         columns={
-            "ciudad": "Ciudad",
-            "barrio": "Barrio",
-            "nombre_anuncio": "Vivienda",
-            "puntuacion_general": "Puntuación general",
-            "volumen_resenas": "Volumen de reseñas",
-            "reserva_instantanea": "Reserva instantánea",
-            "precio_medio_diario": "Precio medio diario",
-            "disponibilidad_pct": "Disponibilidad (%)",
-            "no_disponibilidad_pct": "No disponibilidad (%)",
+            "ciudad": "City",
+            "barrio": "Neighborhood",
+            "nombre_anuncio": "Property",
+            "puntuacion_general": "Overall rating",
+            "volumen_resenas": "Review volume",
+            "reserva_instantanea": "Instant booking",
+            "precio_medio_diario": "Average daily price",
+            "disponibilidad_pct": "Availability (%)",
+            "no_disponibilidad_pct": "Unavailability (%)",
         }
     )
 
     columnas = [
-        "Ciudad",
-        "Barrio",
-        "Vivienda",
-        "Puntuación general",
-        "Volumen de reseñas",
-        "Reserva instantánea",
-        "Precio medio diario",
-        "Disponibilidad (%)",
-        "No disponibilidad (%)",
+        "City",
+        "Neighborhood",
+        "Property",
+        "Overall rating",
+        "Review volume",
+        "Instant booking",
+        "Average daily price",
+        "Availability (%)",
+        "Unavailability (%)",
     ]
 
     st.dataframe(
@@ -530,4 +530,4 @@ def render_valoraciones():
         hide_index=True,
     )
 
-    st.caption("La no disponibilidad se usa como aproximación de ocupación estimada.")
+    st.caption("Unavailability is used as a proxy for estimated occupancy.")

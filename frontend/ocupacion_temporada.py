@@ -259,30 +259,30 @@ def render_ocupacion_temporada():
 
     tabla = tabla.rename(
         columns={
-            "ciudad": "Ciudad",
-            "temporada": "Temporada",
-            "registros_calendario": "Noches analizadas",
-            "num_viviendas": "Nº viviendas",
-            "noches_ocupadas_estimadas": "Noches no disponibles",
-            "noches_disponibles": "Noches disponibles",
-            "ocupacion_estimada_pct": "Ocupación estimada (%)",
-            "disponibilidad_pct": "Disponibilidad (%)",
-            "precio_medio_diario": "Precio medio diario",
-            "ingreso_potencial_total": "Ingreso potencial total",
+            "ciudad": "City",
+            "temporada": "Season",
+            "registros_calendario": "Nights analyzed",
+            "num_viviendas": "No. of properties",
+            "noches_ocupadas_estimadas": "Unavailable nights",
+            "noches_disponibles": "Available nights",
+            "ocupacion_estimada_pct": "Estimated occupancy (%)",
+            "disponibilidad_pct": "Availability (%)",
+            "precio_medio_diario": "Average daily price",
+            "ingreso_potencial_total": "Total potential revenue",
         }
     )
 
     columnas = [
-        "Ciudad",
-        "Temporada",
-        "Nº viviendas",
-        "Noches analizadas",
-        "Noches no disponibles",
-        "Noches disponibles",
-        "Ocupación estimada (%)",
-        "Disponibilidad (%)",
-        "Precio medio diario",
-        "Ingreso potencial total",
+        "City",
+        "Season",
+        "No. of properties",
+        "Nights analyzed",
+        "Unavailable nights",
+        "Available nights",
+        "Estimated occupancy (%)",
+        "Availability (%)",
+        "Average daily price",
+        "Total potential revenue",
     ]
 
     st.dataframe(

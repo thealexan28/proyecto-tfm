@@ -87,7 +87,7 @@ def render_tipo_alojamiento():
     ciudades_df = get_ciudades_disponibles()
 
     if ciudades_df.empty:
-        st.warning("No hay ciudades disponibles en la base de datos.")
+        st.warning("No cities are available in the database.")
         return
 
     ciudades = ciudades_df["ciudad"].dropna().sort_values().tolist()
@@ -96,24 +96,24 @@ def render_tipo_alojamiento():
 
     with col_filter_1:
         ciudad_seleccionada = st.selectbox(
-            "Selecciona una ciudad",
-            options=["Todas las ciudades"] + ciudades,
+            "Select a city",
+            options=["All cities"] + ciudades,
             index=0,
         )
 
     with col_filter_2:
         agrupar_opcion = st.selectbox(
-            "Agrupar análisis por",
+            "Group analysis by",
             options=[
-                "Tipo de habitación",
-                "Tipo de propiedad",
+                "Room type",
+                "Property type",
             ],
             index=0,
         )
 
     with col_filter_3:
         min_viviendas = st.slider(
-            "Mínimo viviendas por capacidad",
+            "Minimum properties per capacity",
             min_value=1,
             max_value=50,
             value=5,
@@ -122,24 +122,24 @@ def render_tipo_alojamiento():
 
     ciudad_param = (
         None
-        if ciudad_seleccionada == "Todas las ciudades"
+        if ciudad_seleccionada == "All cities"
         else ciudad_seleccionada
     )
 
     agrupar_por = (
         "tipo_habitacion"
-        if agrupar_opcion == "Tipo de habitación"
+        if agrupar_opcion == "Room type"
         else "tipo_propiedad"
     )
     etiqueta_agrupacion = (
-        "tipo de habitación"
+        "room type"
         if agrupar_por == "tipo_habitacion"
-        else "tipo de propiedad"
+        else "property type"
     )
     etiqueta_plural = (
-        "Tipos de habitación"
+        "Room types"
         if agrupar_por == "tipo_habitacion"
-        else "Tipos de propiedad mostrados"
+        else "Property types displayed"
     )
 
     # =========================
@@ -156,7 +156,7 @@ def render_tipo_alojamiento():
     )
 
     if df_tipo.empty:
-        st.warning("No hay datos disponibles para la selección realizada.")
+        st.warning("No data is available for the selected filters.")
         return
 
     if agrupar_por == "tipo_propiedad":
@@ -165,7 +165,7 @@ def render_tipo_alojamiento():
     # =========================
     # Respuestas principales
     # =========================
-    st.subheader("Indicadores clave")
+    st.subheader("Key indicators")
 
     tipo_mayor_precio = df_tipo.sort_values(
         "precio_medio_diario",
@@ -180,13 +180,13 @@ def render_tipo_alojamiento():
     col1, col2, col3 = st.columns(3)
 
     col1.metric(
-        "Mayor precio medio",
+        "Highest average price",
         tipo_mayor_precio["tipo_alojamiento"],
         format_currency_dec(tipo_mayor_precio["precio_medio_diario"]),
     )
 
     col2.metric(
-        "Mayor ingreso potencial",
+        "Highest potential revenue",
         tipo_mayor_ingreso["tipo_alojamiento"],
         format_currency(tipo_mayor_ingreso["ingreso_potencial_total"]),
     )
@@ -216,40 +216,40 @@ def render_tipo_alojamiento():
             col1, col2, col3 = st.columns(3)
 
             col1.metric(
-                "No disponibilidad viviendas completas",
+                "Entire-home unavailability",
                 format_pct(fila_completa["no_disponibilidad_pct"]),
             )
 
             col2.metric(
-                "No disponibilidad habitaciones privadas",
+                "Private-room unavailability",
                 format_pct(fila_privada["no_disponibilidad_pct"]),
             )
 
             col3.metric(
-                "Diferencia",
+                "Difference",
                 format_pct(diferencia_no_disp),
             )
 
             if diferencia_no_disp > 0:
                 st.success(
-                    "Las viviendas completas presentan mayor no disponibilidad que las habitaciones privadas."
+                    "Entire homes have higher unavailability than private rooms."
                 )
             elif diferencia_no_disp < 0:
                 st.warning(
-                    "Las habitaciones privadas presentan mayor no disponibilidad que las viviendas completas."
+                    "Private rooms have higher unavailability than entire homes."
                 )
             else:
                 st.info(
-                    "Ambos tipos presentan una no disponibilidad muy similar."
+                    "Both types have very similar unavailability."
                 )
 
             df_comparacion = pd.DataFrame(
                 {
-                    "Tipo": [
+                    "Type": [
                         fila_completa["tipo_alojamiento"],
                         fila_privada["tipo_alojamiento"],
                     ],
-                    "No disponibilidad (%)": [
+                    "Unavailability (%)": [
                         fila_completa["no_disponibilidad_pct"],
                         fila_privada["no_disponibilidad_pct"],
                     ],
@@ -258,13 +258,13 @@ def render_tipo_alojamiento():
 
             fig_comparacion = px.bar(
                 df_comparacion,
-                x="Tipo",
-                y="No disponibilidad (%)",
-                text="No disponibilidad (%)",
-                title="Comparación de no disponibilidad",
+                x="Type",
+                y="Unavailability (%)",
+                text="Unavailability (%)",
+                title="Unavailability comparison",
                 labels={
-                    "Tipo": "Tipo de alojamiento",
-                    "No disponibilidad (%)": "No disponibilidad (%)",
+                    "Type": "Property type",
+                    "Unavailability (%)": "Unavailability (%)",
                 },
             )
 
@@ -277,7 +277,7 @@ def render_tipo_alojamiento():
                 height=420,
                 yaxis_range=[0, 100],
                 xaxis_title="",
-                yaxis_title="No disponibilidad (%)",
+                yaxis_title="Unavailability (%)",
                 margin=dict(l=20, r=20, t=70, b=20),
             )
 
@@ -286,8 +286,8 @@ def render_tipo_alojamiento():
         else:
             st.info(
                 """
-                No se han encontrado simultáneamente viviendas completas y habitaciones privadas
-                con los nombres esperados en los datos disponibles.
+                Entire homes and private rooms were not both found under the expected
+                names in the available data.
                 """
             )
         st.divider()
@@ -295,7 +295,7 @@ def render_tipo_alojamiento():
     # =========================
     # Precio medio por tipo
     # =========================
-    st.subheader(f"¿Qué {etiqueta_agrupacion} tiene mayor precio medio?")
+    st.subheader(f"Which {etiqueta_agrupacion} has the highest average price?")
 
     df_precio = df_tipo.sort_values("precio_medio_diario", ascending=True)
 
@@ -305,9 +305,9 @@ def render_tipo_alojamiento():
         y="tipo_alojamiento",
         orientation="h",
         text="precio_medio_diario",
-        title=f"Precio medio diario por {etiqueta_agrupacion}",
+        title=f"Average daily price by {etiqueta_agrupacion}",
         labels={
-            "precio_medio_diario": "Precio medio diario (€)",
+            "precio_medio_diario": "Average daily price (€)",
             "tipo_alojamiento": etiqueta_agrupacion.capitalize(),
         },
         hover_data={
@@ -325,7 +325,7 @@ def render_tipo_alojamiento():
 
     fig_precio.update_layout(
         height=max(420, len(df_precio) * 45),
-        xaxis_title="Precio medio diario (€)",
+        xaxis_title="Average daily price (€)",
         yaxis_title=etiqueta_agrupacion.capitalize(),
         margin=dict(l=20, r=20, t=70, b=20),
     )
@@ -337,7 +337,7 @@ def render_tipo_alojamiento():
     # =========================
     # Ingreso potencial por tipo
     # =========================
-    st.subheader(f"¿Qué {etiqueta_agrupacion} genera más ingreso potencial?")
+    st.subheader(f"Which {etiqueta_agrupacion} generates the most potential revenue?")
 
     df_ingreso = df_tipo.sort_values("ingreso_potencial_total", ascending=True)
 
@@ -347,9 +347,9 @@ def render_tipo_alojamiento():
         y="tipo_alojamiento",
         orientation="h",
         text="ingreso_potencial_total",
-        title=f"Ingreso potencial total por {etiqueta_agrupacion}",
+        title=f"Total potential revenue by {etiqueta_agrupacion}",
         labels={
-            "ingreso_potencial_total": "Ingreso potencial total (€)",
+            "ingreso_potencial_total": "Total potential revenue (€)",
             "tipo_alojamiento": etiqueta_agrupacion.capitalize(),
         },
         hover_data={
@@ -367,7 +367,7 @@ def render_tipo_alojamiento():
 
     fig_ingreso.update_layout(
         height=max(420, len(df_ingreso) * 45),
-        xaxis_title="Ingreso potencial total (€)",
+        xaxis_title="Total potential revenue (€)",
         yaxis_title=etiqueta_agrupacion.capitalize(),
         margin=dict(l=20, r=20, t=70, b=20),
     )
@@ -383,7 +383,7 @@ def render_tipo_alojamiento():
 
     if df_capacidad.empty:
         st.info(
-            "No hay datos suficientes por capacidad con el mínimo de viviendas seleccionado."
+            "There is not enough capacity data for the selected minimum number of properties."
         )
     else:
         df_capacidad_linea = df_capacidad.sort_values("capacidad_huespedes").copy()
@@ -393,10 +393,10 @@ def render_tipo_alojamiento():
             x="capacidad_huespedes",
             y="precio_medio_diario",
             markers=True,
-            title="Evolución del precio medio según la capacidad del alojamiento",
+            title="Average price trend by property capacity",
             labels={
-                "capacidad_huespedes": "Número de huéspedes",
-                "precio_medio_diario": "Precio medio diario (€)",
+                "capacidad_huespedes": "Number of guests",
+                "precio_medio_diario": "Average daily price (€)",
             },
             hover_data={
                 "num_viviendas": True,
@@ -412,8 +412,8 @@ def render_tipo_alojamiento():
 
         fig_capacidad.update_layout(
             height=500,
-            xaxis_title="Número de huéspedes",
-            yaxis_title="Precio medio diario (€)",
+            xaxis_title="Number of guests",
+            yaxis_title="Average daily price (€)",
             margin=dict(l=20, r=20, t=70, b=20),
         )
 
@@ -426,7 +426,7 @@ def render_tipo_alojamiento():
         col1, col2 = st.columns(2)
 
         col1.metric(
-            "Correlación capacidad-precio",
+            "Capacity-price correlation",
             f"{correlacion:.2f}" if not pd.isna(correlacion) else "-",
         )
 
@@ -436,27 +436,27 @@ def render_tipo_alojamiento():
         ).iloc[0]
 
         col2.metric(
-            "Capacidad con mayor precio medio",
-            f"{int(capacidad_mayor_precio['capacidad_huespedes'])} huéspedes",
+            "Capacity with the highest average price",
+            f"{int(capacidad_mayor_precio['capacidad_huespedes'])} guests",
             format_currency_dec(capacidad_mayor_precio["precio_medio_diario"]),
         )
 
         if not pd.isna(correlacion):
             if correlacion >= 0.6:
                 st.success(
-                    "Existe una relación positiva clara: a mayor capacidad, mayor precio medio."
+                    "There is a clear positive relationship: higher capacity is associated with a higher average price."
                 )
             elif correlacion >= 0.3:
                 st.info(
-                    "Existe una relación positiva moderada entre capacidad y precio medio."
+                    "There is a moderate positive relationship between capacity and average price."
                 )
             elif correlacion > 0:
                 st.info(
-                    "Existe una relación positiva débil entre capacidad y precio medio."
+                    "There is a weak positive relationship between capacity and average price."
                 )
             else:
                 st.warning(
-                    "No se observa una relación positiva clara entre capacidad y precio medio."
+                    "No clear positive relationship between capacity and average price is observed."
                 )
 
     st.divider()
@@ -464,36 +464,36 @@ def render_tipo_alojamiento():
     # =========================
     # Tabla detalle
     # =========================
-    st.subheader(f"Detalle por {etiqueta_agrupacion}")
+    st.subheader(f"Details by {etiqueta_agrupacion}")
 
     tabla = df_tipo.copy()
 
     tabla = tabla.rename(
         columns={
             "tipo_alojamiento": etiqueta_agrupacion.capitalize(),
-            "num_viviendas": "Nº viviendas",
-            "registros_calendario": "Noches analizadas",
-            "registros_con_precio": "Registros con precio",
-            "precio_medio_diario": "Precio medio diario",
-            "precio_mensualizado": "Precio mensualizado",
-            "no_disponibilidad_pct": "No disponibilidad (%)",
-            "disponibilidad_pct": "Disponibilidad (%)",
-            "ingreso_potencial_total": "Ingreso potencial total",
-            "capacidad_media": "Capacidad media",
+            "num_viviendas": "No. of properties",
+            "registros_calendario": "Nights analyzed",
+            "registros_con_precio": "Records with price",
+            "precio_medio_diario": "Average daily price",
+            "precio_mensualizado": "Monthly price",
+            "no_disponibilidad_pct": "Unavailability (%)",
+            "disponibilidad_pct": "Availability (%)",
+            "ingreso_potencial_total": "Total potential revenue",
+            "capacidad_media": "Average capacity",
         }
     )
 
     columnas = [
         etiqueta_agrupacion.capitalize(),
-        "Nº viviendas",
-        "Precio medio diario",
-        "Precio mensualizado",
-        "No disponibilidad (%)",
-        "Disponibilidad (%)",
-        "Ingreso potencial total",
-        "Capacidad media",
-        "Registros con precio",
-        "Noches analizadas",
+        "No. of properties",
+        "Average daily price",
+        "Monthly price",
+        "Unavailability (%)",
+        "Availability (%)",
+        "Total potential revenue",
+        "Average capacity",
+        "Records with price",
+        "Nights analyzed",
     ]
 
     st.dataframe(
@@ -502,4 +502,4 @@ def render_tipo_alojamiento():
         hide_index=True,
     )
 
-    st.caption("La no disponibilidad se usa como aproximación de ocupación estimada.")
+    st.caption("Unavailability is used as a proxy for estimated occupancy.")

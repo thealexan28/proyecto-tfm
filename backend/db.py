@@ -54,7 +54,7 @@ def _get_connection_config():
     missing = [name for name in required_vars if not config[name]]
     if missing:
         raise RuntimeError(
-            f"Faltan variables de configuración: {', '.join(missing)}"
+            f"Missing configuration variables: {', '.join(missing)}"
         )
 
     return config
@@ -69,7 +69,7 @@ def _materialize_base64_wallet(wallet_b64: str) -> str:
             validate=True,
         )
     except (binascii.Error, ValueError) as exc:
-        raise RuntimeError("ORACLE_WALLET_B64 no contiene Base64 válido.") from exc
+        raise RuntimeError("ORACLE_WALLET_B64 does not contain valid Base64 data.") from exc
 
     try:
         with zipfile.ZipFile(io.BytesIO(wallet_bytes)) as wallet_zip:
@@ -86,7 +86,7 @@ def _materialize_base64_wallet(wallet_b64: str) -> str:
             ]
             if missing:
                 raise RuntimeError(
-                    "El wallet no contiene los archivos necesarios: "
+                    "The wallet does not contain the required files: "
                     + ", ".join(missing)
                 )
 
@@ -95,7 +95,7 @@ def _materialize_base64_wallet(wallet_b64: str) -> str:
                 member = members[filename]
                 if member.file_size > MAX_WALLET_FILE_SIZE:
                     raise RuntimeError(
-                        f"El archivo {filename} supera el tamaño permitido."
+                        f"The file {filename} exceeds the permitted size."
                     )
 
                 target = wallet_dir / filename
@@ -106,7 +106,7 @@ def _materialize_base64_wallet(wallet_b64: str) -> str:
                     pass
     except zipfile.BadZipFile as exc:
         raise RuntimeError(
-            "ORACLE_WALLET_B64 no contiene un archivo ZIP válido."
+            "ORACLE_WALLET_B64 does not contain a valid ZIP file."
         ) from exc
 
     try:

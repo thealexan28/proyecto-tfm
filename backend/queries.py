@@ -115,7 +115,7 @@ def get_ciudades_disponibles():
 def get_concentracion_barrios(ciudad: str | None = None, limite: int = 15):
     """
     Responde a la pregunta:
-    ¿Qué barrios concentran más pisos turísticos?
+    Which neighborhoods contain the most short-term rental properties?
 
     Si ciudad es None, devuelve el ranking general.
     Si ciudad tiene valor, devuelve el ranking de esa ciudad.
@@ -183,7 +183,7 @@ def get_concentracion_barrios(ciudad: str | None = None, limite: int = 15):
 def get_ingresos_potenciales_barrios(ciudad: str | None = None, limite: int = 15):
     """
     Responde a la pregunta:
-    ¿Qué barrios generan más ingresos potenciales?
+    Which neighborhoods generate the most potential revenue?
 
     Si ciudad es None, devuelve el ranking general.
     Si ciudad tiene valor, devuelve el ranking de esa ciudad.
@@ -291,9 +291,9 @@ def get_barrios_disponibles_por_ciudad(ciudad: str):
 def get_ocupacion_por_temporada(ciudad: str | None = None, barrio: str | None = None):
     """
     Responde a la pregunta:
-    ¿Cómo varía la ocupación estimada por temporada?
+    How does estimated occupancy vary by season?
 
-    La ocupación estimada se calcula como el porcentaje de registros
+    Estimated occupancy is calculated as the percentage of records
     en los que el alojamiento aparece como no disponible.
     """
 
@@ -363,7 +363,7 @@ def get_ocupacion_por_temporada(ciudad: str | None = None, barrio: str | None = 
 
 def get_ocupacion_mensual(ciudad: str | None = None, barrio: str | None = None):
     """
-    Devuelve la evolución mensual de la ocupación estimada.
+    Returns the monthly estimated occupancy trend.
     """
 
     sql = f"""
@@ -811,8 +811,8 @@ def get_analisis_tipo_alojamiento(
     agrupar_por: str = "tipo_habitacion",
 ):
     """
-    Análisis agregado por tipo de habitación o tipo de propiedad.
-    Usa toda la información disponible en FACT_DISPONIBILIDAD_ALOJAMIENTO.
+    Aggregated analysis by room type or property type.
+    Uses all available information in FACT_DISPONIBILIDAD_ALOJAMIENTO.
     """
 
     columnas_validas = {
@@ -827,7 +827,7 @@ def get_analisis_tipo_alojamiento(
 
     sql = f"""
         SELECT
-            NVL({columna}, 'Sin clasificar') AS tipo_alojamiento,
+            NVL({columna}, 'Unclassified') AS tipo_alojamiento,
 
             COUNT(DISTINCT f.id_vivienda) AS num_viviendas,
 
@@ -878,7 +878,7 @@ def get_analisis_tipo_alojamiento(
           AND UPPER(REPLACE(g.barrio, ' ', '_')) <> 'TOTAL_MUNICIPIO'
 
         GROUP BY
-            NVL({columna}, 'Sin clasificar')
+            NVL({columna}, 'Unclassified')
 
         ORDER BY
             precio_medio_diario DESC NULLS LAST
@@ -897,8 +897,8 @@ def get_precio_por_capacidad(
     min_viviendas: int = 5,
 ):
     """
-    Relación entre capacidad del alojamiento y precio medio diario.
-    Usa toda la información disponible en FACT_DISPONIBILIDAD_ALOJAMIENTO.
+    Relationship between property capacity and average daily price.
+    Uses all available information in FACT_DISPONIBILIDAD_ALOJAMIENTO.
     """
 
     sql = f"""
@@ -965,7 +965,7 @@ def get_resumen_anfitriones(
         WITH anfitrion_stats AS (
             SELECT
                 f.id_anfitrion,
-                NVL(a.nombre_anfitrion, 'Sin nombre') AS nombre_anfitrion,
+                NVL(a.nombre_anfitrion, 'Unnamed') AS nombre_anfitrion,
 
                 COUNT(DISTINCT f.id_vivienda) AS num_viviendas,
 
@@ -1003,7 +1003,7 @@ def get_resumen_anfitriones(
 
             GROUP BY
                 f.id_anfitrion,
-                NVL(a.nombre_anfitrion, 'Sin nombre')
+                NVL(a.nombre_anfitrion, 'Unnamed')
         )
 
         SELECT
@@ -1062,11 +1062,11 @@ def get_top_anfitriones(
         FROM (
             SELECT
                 f.id_anfitrion,
-                NVL(a.nombre_anfitrion, 'Sin nombre') AS nombre_anfitrion,
+                NVL(a.nombre_anfitrion, 'Unnamed') AS nombre_anfitrion,
 
                 CASE
                     WHEN UPPER(NVL(a.es_superhost, 'N')) IN ('S', 'SI', 'Y', 'YES', 'T', 'TRUE')
-                    THEN 'Sí'
+                    THEN 'Yes'
                     ELSE 'No'
                 END AS es_superhost,
 
@@ -1106,10 +1106,10 @@ def get_top_anfitriones(
 
             GROUP BY
                 f.id_anfitrion,
-                NVL(a.nombre_anfitrion, 'Sin nombre'),
+                NVL(a.nombre_anfitrion, 'Unnamed'),
                 CASE
                     WHEN UPPER(NVL(a.es_superhost, 'N')) IN ('S', 'SI', 'Y', 'YES', 'T', 'TRUE')
-                    THEN 'Sí'
+                    THEN 'Yes'
                     ELSE 'No'
                 END
 
@@ -1204,8 +1204,8 @@ def get_grandes_tenedores_precio(
         SELECT
             CASE
                 WHEN ac.num_viviendas_anfitrion >= :umbral_gran_tenedor
-                THEN 'Grandes tenedores'
-                ELSE 'Anfitriones particulares'
+                THEN 'Large-scale owners'
+                ELSE 'Individual hosts'
             END AS tipo_tenedor,
 
             COUNT(DISTINCT f.id_anfitrion) AS num_anfitriones,
@@ -1251,8 +1251,8 @@ def get_grandes_tenedores_precio(
         GROUP BY
             CASE
                 WHEN ac.num_viviendas_anfitrion >= :umbral_gran_tenedor
-                THEN 'Grandes tenedores'
-                ELSE 'Anfitriones particulares'
+                THEN 'Large-scale owners'
+                ELSE 'Individual hosts'
             END
 
         ORDER BY
@@ -1396,7 +1396,7 @@ def get_valoraciones_viviendas(
 
             CASE
                 WHEN UPPER(NVL(val.reserva_instantanea, 'N')) IN ('S', 'SI', 'Y', 'YES', 'T', 'TRUE')
-                THEN 'Sí'
+                THEN 'Yes'
                 ELSE 'No'
             END AS reserva_instantanea,
 
@@ -1428,8 +1428,8 @@ def get_reserva_instantanea_disponibilidad(
         SELECT
             CASE
                 WHEN UPPER(NVL(val.reserva_instantanea, 'N')) IN ('S', 'SI', 'Y', 'YES', 'T', 'TRUE')
-                THEN 'Reserva instantánea'
-                ELSE 'Sin reserva instantánea'
+                THEN 'Instant booking'
+                ELSE 'No instant booking'
             END AS tipo_reserva,
 
             COUNT(DISTINCT f.id_vivienda) AS num_viviendas,
@@ -1464,8 +1464,8 @@ def get_reserva_instantanea_disponibilidad(
         GROUP BY
             CASE
                 WHEN UPPER(NVL(val.reserva_instantanea, 'N')) IN ('S', 'SI', 'Y', 'YES', 'T', 'TRUE')
-                THEN 'Reserva instantánea'
-                ELSE 'Sin reserva instantánea'
+                THEN 'Instant booking'
+                ELSE 'No instant booking'
             END
 
         ORDER BY

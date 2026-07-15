@@ -41,7 +41,7 @@ def render_airbnb_vs_alquiler():
     ciudades_df = get_ciudades_disponibles()
 
     if ciudades_df.empty:
-        st.warning("No hay ciudades disponibles en la base de datos.")
+        st.warning("No cities are available in the database.")
         return
 
     ciudades = ciudades_df["ciudad"].dropna().sort_values().tolist()
@@ -50,14 +50,14 @@ def render_airbnb_vs_alquiler():
 
     with col_filter_1:
         ciudad_seleccionada = st.selectbox(
-            "Selecciona una ciudad",
-            options=["Todas las ciudades"] + ciudades,
+            "Select a city",
+            options=["All cities"] + ciudades,
             index=0,
         )
 
     with col_filter_2:
         limite = st.slider(
-            "Barrios a mostrar",
+            "Neighborhoods to display",
             min_value=5,
             max_value=30,
             value=15,
@@ -66,7 +66,7 @@ def render_airbnb_vs_alquiler():
 
     ciudad_param = (
         None
-        if ciudad_seleccionada == "Todas las ciudades"
+        if ciudad_seleccionada == "All cities"
         else ciudad_seleccionada
     )
 
@@ -83,7 +83,7 @@ def render_airbnb_vs_alquiler():
     )
 
     if df_ciudad.empty:
-        st.warning("No hay datos disponibles para la selección realizada.")
+        st.warning("No data is available for the selected filters.")
         return
 
     # =========================
@@ -102,32 +102,32 @@ def render_airbnb_vs_alquiler():
 
         df_plot = df_plot.rename(
             columns={
-                "precio_airbnb_mensualizado": "Airbnb mensualizado",
-                "alquiler_habitual_municipal": "Alquiler habitual municipal",
+                "precio_airbnb_mensualizado": "Monthly Airbnb revenue",
+                "alquiler_habitual_municipal": "Municipal long-term rent",
             }
         )
 
         df_melt = df_plot.melt(
             id_vars="ciudad",
             value_vars=[
-                "Airbnb mensualizado",
-                "Alquiler habitual municipal",
+                "Monthly Airbnb revenue",
+                "Municipal long-term rent",
             ],
-            var_name="Métrica",
-            value_name="Importe mensual",
+            var_name="Metric",
+            value_name="Monthly amount",
         )
 
         fig_comparacion = px.bar(
             df_melt,
             x="ciudad",
-            y="Importe mensual",
-            color="Métrica",
+            y="Monthly amount",
+            color="Metric",
             barmode="group",
-            text="Importe mensual",
-            title="Airbnb mensualizado frente al alquiler habitual municipal",
+            text="Monthly amount",
+            title="Monthly Airbnb revenue vs municipal long-term rent",
             labels={
-                "ciudad": "Ciudad",
-                "Importe mensual": "Importe mensual (€)",
+                "ciudad": "City",
+                "Monthly amount": "Monthly amount (€)",
             },
         )
 
@@ -138,8 +138,8 @@ def render_airbnb_vs_alquiler():
 
         fig_comparacion.update_layout(
             height=500,
-            yaxis_title="Importe mensual (€)",
-            xaxis_title="Ciudad",
+            yaxis_title="Monthly amount (€)",
+            xaxis_title="City",
             margin=dict(l=20, r=20, t=70, b=20),
         )
 
@@ -156,17 +156,17 @@ def render_airbnb_vs_alquiler():
         col1, col2, col3 = st.columns(3)
 
         col1.metric(
-            "Diferencia media",
+            "Average difference",
             format_currency(diferencia_media),
         )
 
         col2.metric(
-            "Ratio medio Airbnb/alquiler",
+            "Average Airbnb/rent ratio",
             format_ratio(ratio_medio),
         )
 
         col3.metric(
-            "Mayor diferencia",
+            "Largest difference",
             ciudad_mayor_dif["ciudad"],
             format_currency(ciudad_mayor_dif["diferencia_mensual"]),
         )
@@ -177,32 +177,32 @@ def render_airbnb_vs_alquiler():
         col1, col2, col3, col4 = st.columns(4)
 
         col1.metric(
-            "Airbnb mensualizado",
+            "Monthly Airbnb revenue",
             format_currency(fila["precio_airbnb_mensualizado"]),
         )
 
         col2.metric(
-            "Alquiler habitual municipal",
+            "Municipal long-term rent",
             format_currency(fila["alquiler_habitual_municipal"]),
         )
 
         col3.metric(
-            "Diferencia mensual",
+            "Monthly difference",
             format_currency(fila["diferencia_mensual"]),
         )
 
         col4.metric(
-            "Ratio Airbnb/alquiler",
+            "Airbnb/rent ratio",
             format_ratio(fila["ratio_airbnb_vs_alquiler"]),
         )
 
         df_plot = pd.DataFrame(
             {
-                "Métrica": [
-                    "Airbnb mensualizado",
-                    "Alquiler habitual municipal",
+                "Metric": [
+                    "Monthly Airbnb revenue",
+                    "Municipal long-term rent",
                 ],
-                "Importe mensual": [
+                "Monthly amount": [
                     fila["precio_airbnb_mensualizado"],
                     fila["alquiler_habitual_municipal"],
                 ],
@@ -211,12 +211,12 @@ def render_airbnb_vs_alquiler():
 
         fig_comparacion = px.bar(
             df_plot,
-            x="Métrica",
-            y="Importe mensual",
-            text="Importe mensual",
-            title=f"Comparación mensual en {ciudad_seleccionada}",
+            x="Metric",
+            y="Monthly amount",
+            text="Monthly amount",
+            title=f"Monthly comparison in {ciudad_seleccionada}",
             labels={
-                "Importe mensual": "Importe mensual (€)",
+                "Monthly amount": "Monthly amount (€)",
             },
         )
 
@@ -227,7 +227,7 @@ def render_airbnb_vs_alquiler():
 
         fig_comparacion.update_layout(
             height=450,
-            yaxis_title="Importe mensual (€)",
+            yaxis_title="Monthly amount (€)",
             xaxis_title="",
             margin=dict(l=20, r=20, t=70, b=20),
         )
@@ -256,14 +256,14 @@ def render_airbnb_vs_alquiler():
 
     contexto_tabla = contexto_df.rename(
         columns={
-            "ciudad": "Ciudad",
-            "alquiler_habitual_municipal": "Alquiler habitual municipal",
-            "renta_media_hogar": "Renta media hogar",
-            "ingresos_ciudadanos": "Renta media persona",
-            "num_viviendas_residenciales": "Viviendas residenciales",
-            "num_viviendas_turisticas": "Viviendas turísticas oficiales",
-            "capacidad_viviendas_turisticas": "Plazas turísticas oficiales",
-            "indice_presion_turistica": "Índice presión turística",
+            "ciudad": "City",
+            "alquiler_habitual_municipal": "Municipal long-term rent",
+            "renta_media_hogar": "Average household income",
+            "ingresos_ciudadanos": "Average personal income",
+            "num_viviendas_residenciales": "Residential properties",
+            "num_viviendas_turisticas": "Official short-term rental properties",
+            "capacidad_viviendas_turisticas": "Official tourist capacity",
+            "indice_presion_turistica": "Tourism pressure index",
         }
     )
 
@@ -281,19 +281,19 @@ def render_airbnb_vs_alquiler():
     st.subheader("Neighborhoods vs the municipal benchmark")
 
     if df_barrios.empty:
-        st.warning("No hay datos por barrio para la selección realizada.")
+        st.warning("No neighborhood data is available for the selected filters.")
     else:
         if ciudad_param is None:
             df_barrios["zona"] = (
                 df_barrios["barrio"] + " (" + df_barrios["ciudad"] + ")"
             )
             titulo_barrios = (
-                f"Top {limite} barrios por diferencia frente al alquiler municipal"
+                f"Top {limite} neighborhoods by difference from municipal rent"
             )
         else:
             df_barrios["zona"] = df_barrios["barrio"]
             titulo_barrios = (
-                f"Top {limite} barrios por diferencia frente al alquiler municipal en {ciudad_seleccionada}"
+                f"Top {limite} neighborhoods by difference from municipal rent in {ciudad_seleccionada}"
             )
 
         df_chart = df_barrios.sort_values(
@@ -309,8 +309,8 @@ def render_airbnb_vs_alquiler():
             text="diferencia_frente_alquiler_municipal",
             title=titulo_barrios,
             labels={
-                "diferencia_frente_alquiler_municipal": "Diferencia frente al alquiler municipal (€)",
-                "zona": "Barrio",
+                "diferencia_frente_alquiler_municipal": "Difference from municipal rent (€)",
+                "zona": "Neighborhood",
             },
             hover_data={
                 "ciudad": True,
@@ -330,8 +330,8 @@ def render_airbnb_vs_alquiler():
 
         fig_barrios.update_layout(
             height=max(450, limite * 34),
-            xaxis_title="Diferencia frente al alquiler municipal (€)",
-            yaxis_title="Barrio",
+            xaxis_title="Difference from municipal rent (€)",
+            yaxis_title="Neighborhood",
             margin=dict(l=20, r=20, t=70, b=20),
         )
 
@@ -352,19 +352,19 @@ def render_airbnb_vs_alquiler():
             size="ingreso_potencial_total",
             color="ciudad" if ciudad_param is None else None,
             hover_name="barrio",
-            title="Número de viviendas frente a Airbnb mensualizado por barrio",
+            title="Number of properties vs monthly Airbnb revenue by neighborhood",
             labels={
-                "num_viviendas": "Número de viviendas turísticas",
-                "precio_airbnb_mensualizado_barrio": "Airbnb mensualizado por barrio (€)",
-                "ingreso_potencial_total": "Ingreso potencial total",
-                "ciudad": "Ciudad",
+                "num_viviendas": "Number of short-term rental properties",
+                "precio_airbnb_mensualizado_barrio": "Monthly Airbnb revenue by neighborhood (€)",
+                "ingreso_potencial_total": "Total potential revenue",
+                "ciudad": "City",
             },
         )
 
         fig_scatter.update_layout(
             height=500,
-            xaxis_title="Número de viviendas turísticas",
-            yaxis_title="Airbnb mensualizado por barrio (€)",
+            xaxis_title="Number of short-term rental properties",
+            yaxis_title="Monthly Airbnb revenue by neighborhood (€)",
             margin=dict(l=20, r=20, t=70, b=20),
         )
 
@@ -382,36 +382,36 @@ def render_airbnb_vs_alquiler():
 
         tabla = tabla.rename(
             columns={
-                "ciudad": "Ciudad",
-                "barrio": "Barrio",
-                "num_viviendas": "Nº viviendas",
-                "precio_medio_airbnb_diario": "Precio Airbnb diario",
-                "precio_airbnb_mensualizado_barrio": "Airbnb mensualizado barrio",
-                "alquiler_habitual_municipal": "Alquiler habitual municipal",
-                "diferencia_frente_alquiler_municipal": "Diferencia frente referencia municipal",
-                "ratio_frente_alquiler_municipal": "Ratio frente referencia municipal",
-                "disponibilidad_pct": "Disponibilidad (%)",
-                "ocupacion_estimada_pct": "Ocupación estimada (%)",
-                "ingreso_potencial_total": "Ingreso potencial total",
-                "registros_con_precio": "Registros con precio",
-                "registros_calendario": "Noches analizadas",
+                "ciudad": "City",
+                "barrio": "Neighborhood",
+                "num_viviendas": "No. of properties",
+                "precio_medio_airbnb_diario": "Daily Airbnb price",
+                "precio_airbnb_mensualizado_barrio": "Monthly neighborhood Airbnb revenue",
+                "alquiler_habitual_municipal": "Municipal long-term rent",
+                "diferencia_frente_alquiler_municipal": "Difference from municipal benchmark",
+                "ratio_frente_alquiler_municipal": "Ratio to municipal benchmark",
+                "disponibilidad_pct": "Availability (%)",
+                "ocupacion_estimada_pct": "Estimated occupancy (%)",
+                "ingreso_potencial_total": "Total potential revenue",
+                "registros_con_precio": "Records with price",
+                "registros_calendario": "Nights analyzed",
             }
         )
 
         columnas = [
-            "Ciudad",
-            "Barrio",
-            "Nº viviendas",
-            "Precio Airbnb diario",
-            "Airbnb mensualizado barrio",
-            "Alquiler habitual municipal",
-            "Diferencia frente referencia municipal",
-            "Ratio frente referencia municipal",
-            "Disponibilidad (%)",
-            "Ocupación estimada (%)",
-            "Ingreso potencial total",
-            "Registros con precio",
-            "Noches analizadas",
+            "City",
+            "Neighborhood",
+            "No. of properties",
+            "Daily Airbnb price",
+            "Monthly neighborhood Airbnb revenue",
+            "Municipal long-term rent",
+            "Difference from municipal benchmark",
+            "Ratio to municipal benchmark",
+            "Availability (%)",
+            "Estimated occupancy (%)",
+            "Total potential revenue",
+            "Records with price",
+            "Nights analyzed",
         ]
 
         st.dataframe(
@@ -422,7 +422,7 @@ def render_airbnb_vs_alquiler():
 
     st.caption(
         """
-        El precio Airbnb se mensualiza multiplicando el precio diario medio por 30.
-        La referencia de alquiler habitual es municipal.
+        The Airbnb price is converted to a monthly amount by multiplying the average daily price by 30.
+        The long-term rental benchmark is municipal.
         """
     )
