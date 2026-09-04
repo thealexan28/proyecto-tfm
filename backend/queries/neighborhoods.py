@@ -94,7 +94,7 @@ def get_neighborhood_potential_revenue(city: str | None = None, limit: int = 15)
                     ROUND(AVG(f.precio_ajustado_diario), 2) AS precio_medio_diario,
 
                     ROUND(
-                        SUM(NVL(f.ingreso_potencial_diario, 0)) 
+                        SUM(NVL(f.ingreso_potencial_diario, 0))
                         / NULLIF(COUNT(DISTINCT f.id_vivienda), 0),
                         2
                     ) AS ingreso_potencial_por_vivienda,

@@ -57,27 +57,27 @@ def get_host_summary(
             SUM(num_viviendas) AS total_viviendas,
 
             SUM(
-                CASE 
-                    WHEN num_viviendas >= :umbral_gran_tenedor 
-                    THEN 1 
-                    ELSE 0 
+                CASE
+                    WHEN num_viviendas >= :umbral_gran_tenedor
+                    THEN 1
+                    ELSE 0
                 END
             ) AS total_grandes_tenedores,
 
             SUM(
-                CASE 
-                    WHEN num_viviendas >= :umbral_gran_tenedor 
-                    THEN num_viviendas 
-                    ELSE 0 
+                CASE
+                    WHEN num_viviendas >= :umbral_gran_tenedor
+                    THEN num_viviendas
+                    ELSE 0
                 END
             ) AS viviendas_grandes_tenedores,
 
             ROUND(
                 SUM(
-                    CASE 
-                        WHEN num_viviendas >= :umbral_gran_tenedor 
-                        THEN num_viviendas 
-                        ELSE 0 
+                    CASE
+                        WHEN num_viviendas >= :umbral_gran_tenedor
+                        THEN num_viviendas
+                        ELSE 0
                     END
                 ) * 100 / NULLIF(SUM(num_viviendas), 0),
                 2
