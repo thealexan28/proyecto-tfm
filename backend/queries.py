@@ -121,7 +121,7 @@ def get_concentracion_barrios(ciudad: str | None = None, limite: int = 15):
     Si ciudad tiene valor, devuelve el ranking de esa ciudad.
     """
 
-    sql = f"""
+    sql = """
         SELECT *
         FROM (
             WITH barrios AS (
@@ -189,7 +189,7 @@ def get_ingresos_potenciales_barrios(ciudad: str | None = None, limite: int = 15
     Si ciudad tiene valor, devuelve el ranking de esa ciudad.
     """
 
-    sql = f"""
+    sql = """
         SELECT *
         FROM (
             WITH barrios AS (
@@ -297,7 +297,7 @@ def get_ocupacion_por_temporada(ciudad: str | None = None, barrio: str | None = 
     en los que el alojamiento aparece como no disponible.
     """
 
-    sql = f"""
+    sql = """
         SELECT
             g.ciudad,
             t.temporada,
@@ -366,7 +366,7 @@ def get_ocupacion_mensual(ciudad: str | None = None, barrio: str | None = None):
     Returns the monthly estimated occupancy trend.
     """
 
-    sql = f"""
+    sql = """
         SELECT
             g.ciudad,
             t.anio,
@@ -530,7 +530,7 @@ def get_comparativa_alquiler_ciudad(
     fecha_fin: str = "2025-11-30",
     fecha_contexto: str = "2025-11-30",
 ):
-    sql = f"""
+    sql = """
         WITH airbnb_ciudad AS (
             SELECT
                 g.ciudad,
@@ -668,7 +668,7 @@ def get_comparativa_alquiler_barrios(
     fecha_fin: str = "2025-11-30",
     fecha_contexto: str = "2025-11-30",
 ):
-    sql = f"""
+    sql = """
         SELECT *
         FROM (
             WITH contexto_municipal AS (
@@ -901,7 +901,7 @@ def get_precio_por_capacidad(
     Uses all available information in FACT_DISPONIBILIDAD_ALOJAMIENTO.
     """
 
-    sql = f"""
+    sql = """
         SELECT
             ta.capacidad_huespedes,
 
@@ -961,7 +961,7 @@ def get_resumen_anfitriones(
     ciudad: str | None = None,
     umbral_gran_tenedor: int = 5,
 ):
-    sql = f"""
+    sql = """
         WITH anfitrion_stats AS (
             SELECT
                 f.id_anfitrion,
@@ -1057,7 +1057,7 @@ def get_top_anfitriones(
     ciudad: str | None = None,
     limite: int = 15,
 ):
-    sql = f"""
+    sql = """
         SELECT *
         FROM (
             SELECT
@@ -1130,7 +1130,7 @@ def get_top_anfitriones(
 
 
 def get_superhost_disponibilidad(ciudad: str | None = None):
-    sql = f"""
+    sql = """
         SELECT
             CASE
                 WHEN UPPER(NVL(a.es_superhost, 'N')) IN ('S', 'SI', 'Y', 'YES', 'T', 'TRUE')
@@ -1186,7 +1186,7 @@ def get_grandes_tenedores_precio(
     ciudad: str | None = None,
     umbral_gran_tenedor: int = 5,
 ):
-    sql = f"""
+    sql = """
         WITH anfitrion_clase AS (
             SELECT
                 f.id_anfitrion,
@@ -1272,7 +1272,7 @@ def get_barrios_mejor_valorados(
     limite: int = 15,
     min_viviendas: int = 10,
 ):
-    sql = f"""
+    sql = """
         SELECT *
         FROM (
             SELECT
@@ -1424,7 +1424,7 @@ def get_valoraciones_viviendas(
 def get_reserva_instantanea_disponibilidad(
     ciudad: str | None = None,
 ):
-    sql = f"""
+    sql = """
         SELECT
             CASE
                 WHEN UPPER(NVL(val.reserva_instantanea, 'N')) IN ('S', 'SI', 'Y', 'YES', 'T', 'TRUE')

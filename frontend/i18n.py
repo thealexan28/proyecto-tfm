@@ -37,7 +37,7 @@ TRANSLATIONS = {
     "Sin reseñas": "No reviews", "Pocas reseñas": "Few reviews", "Muchas reseñas": "Many reviews",
     "Anfitriones particulares": "Individual hosts", "Grandes tenedores": "Large-scale owners",
     "Viviendas": "Properties", "Barrios": "Neighborhoods", "Anfitriones": "Hosts",
-    "Grandes tenedores": "Large-scale owners", "Sin nombre": "Unnamed", "desconocido": "unknown",
+    "Sin nombre": "Unnamed", "desconocido": "unknown",
     "Sin clasificar": "Unclassified", "Airbnb mensualizado": "Monthly Airbnb revenue",
     "Alquiler habitual municipal": "Municipal long-term rent", "Importe mensual": "Monthly amount",
     "Barrios a mostrar": "Neighborhoods to display", "Anfitriones a mostrar": "Hosts to display",
