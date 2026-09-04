@@ -1,68 +1,68 @@
 """Public query API grouped by analytical domain."""
 
 from .accommodation import (
-    get_analisis_tipo_alojamiento,
-    get_precio_por_capacidad,
+    get_accommodation_type_analysis,
+    get_price_by_capacity,
 )
 from .geography import (
-    get_barrios_disponibles_por_ciudad,
-    get_ciudades_disponibles,
+    get_available_cities,
+    get_available_neighborhoods_by_city,
 )
 from .hosts import (
-    get_grandes_tenedores_precio,
-    get_resumen_anfitriones,
-    get_superhost_disponibilidad,
-    get_top_anfitriones,
+    get_host_summary,
+    get_large_owner_prices,
+    get_superhost_availability,
+    get_top_hosts,
 )
-from .listings import get_viviendas_mapa
+from .listings import get_map_listings
 from .neighborhoods import (
-    get_concentracion_barrios,
-    get_ingresos_potenciales_barrios,
+    get_neighborhood_concentration,
+    get_neighborhood_potential_revenue,
 )
-from .occupancy import get_ocupacion_mensual, get_ocupacion_por_temporada
+from .occupancy import get_monthly_occupancy, get_occupancy_by_season
 from .overview import (
-    get_disponibilidad_por_temporada,
-    get_kpis_generales,
-    get_resumen_por_ciudad,
-    get_top_barrios,
+    get_availability_by_season,
+    get_city_summary,
+    get_overview_kpis,
+    get_top_neighborhoods,
 )
 from .ratings import (
-    get_barrios_mejor_valorados,
-    get_reserva_instantanea_disponibilidad,
-    get_valoraciones_viviendas,
+    get_best_rated_neighborhoods,
+    get_instant_booking_availability,
+    get_listing_ratings,
 )
 from .rental_market import (
     RENTAL_COMPARISON_END_DATE,
     RENTAL_COMPARISON_START_DATE,
     RENTAL_CONTEXT_DATE,
-    get_comparativa_alquiler_barrios,
-    get_comparativa_alquiler_ciudad,
+    get_city_rental_comparison,
+    get_neighborhood_rental_comparison,
 )
 
 __all__ = [
     "RENTAL_COMPARISON_END_DATE",
     "RENTAL_COMPARISON_START_DATE",
     "RENTAL_CONTEXT_DATE",
-    "get_analisis_tipo_alojamiento",
-    "get_barrios_disponibles_por_ciudad",
-    "get_barrios_mejor_valorados",
-    "get_ciudades_disponibles",
-    "get_comparativa_alquiler_barrios",
-    "get_comparativa_alquiler_ciudad",
-    "get_concentracion_barrios",
-    "get_disponibilidad_por_temporada",
-    "get_grandes_tenedores_precio",
-    "get_ingresos_potenciales_barrios",
-    "get_kpis_generales",
-    "get_ocupacion_mensual",
-    "get_ocupacion_por_temporada",
-    "get_precio_por_capacidad",
-    "get_reserva_instantanea_disponibilidad",
-    "get_resumen_anfitriones",
-    "get_resumen_por_ciudad",
-    "get_superhost_disponibilidad",
-    "get_top_anfitriones",
-    "get_top_barrios",
-    "get_valoraciones_viviendas",
-    "get_viviendas_mapa",
+    "get_accommodation_type_analysis",
+    "get_availability_by_season",
+    "get_available_cities",
+    "get_available_neighborhoods_by_city",
+    "get_best_rated_neighborhoods",
+    "get_city_rental_comparison",
+    "get_city_summary",
+    "get_host_summary",
+    "get_instant_booking_availability",
+    "get_large_owner_prices",
+    "get_listing_ratings",
+    "get_map_listings",
+    "get_monthly_occupancy",
+    "get_neighborhood_concentration",
+    "get_neighborhood_potential_revenue",
+    "get_neighborhood_rental_comparison",
+    "get_occupancy_by_season",
+    "get_overview_kpis",
+    "get_price_by_capacity",
+    "get_superhost_availability",
+    "get_top_hosts",
+    "get_top_neighborhoods",
 ]

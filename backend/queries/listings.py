@@ -3,20 +3,20 @@
 from backend.db import run_query
 
 
-def get_viviendas_mapa(ciudad: str | None = None, barrio: str | None = None):
-    filtros = [
+def get_map_listings(city: str | None = None, neighborhood: str | None = None):
+    filters = [
         "g.barrio IS NOT NULL",
         "UPPER(REPLACE(g.barrio, ' ', '_')) <> 'TOTAL_MUNICIPIO'",
     ]
     params = {}
 
-    if ciudad is not None:
-        filtros.append("g.ciudad = :ciudad")
-        params["ciudad"] = ciudad
+    if city is not None:
+        filters.append("g.ciudad = :ciudad")
+        params["ciudad"] = city
 
-    if barrio is not None:
-        filtros.append("g.barrio = :barrio")
-        params["barrio"] = barrio
+    if neighborhood is not None:
+        filters.append("g.barrio = :barrio")
+        params["barrio"] = neighborhood
 
     sql = f"""
         WITH vivienda_stats AS (
@@ -52,7 +52,7 @@ def get_viviendas_mapa(ciudad: str | None = None, barrio: str | None = None):
             JOIN dim_geografia g
                 ON f.id_geografia = g.id_geografia
 
-            WHERE {" AND ".join(filtros)}
+            WHERE {" AND ".join(filters)}
 
             GROUP BY
                 f.id_vivienda,

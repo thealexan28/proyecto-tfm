@@ -3,10 +3,10 @@
 from backend.db import run_query
 
 
-def get_barrios_mejor_valorados(
-    ciudad: str | None = None,
-    limite: int = 15,
-    min_viviendas: int = 10,
+def get_best_rated_neighborhoods(
+    city: str | None = None,
+    limit: int = 15,
+    min_listings: int = 10,
 ):
     sql = """
         SELECT *
@@ -66,25 +66,25 @@ def get_barrios_mejor_valorados(
     return run_query(
         sql,
         {
-            "ciudad": ciudad,
-            "limite": limite,
-            "min_viviendas": min_viviendas,
+            "ciudad": city,
+            "limite": limit,
+            "min_viviendas": min_listings,
         },
     )
 
 
-def get_valoraciones_viviendas(
-    ciudad: str | None = None,
+def get_listing_ratings(
+    city: str | None = None,
 ):
-    filtros = [
+    filters = [
         "g.barrio IS NOT NULL",
         "UPPER(REPLACE(g.barrio, ' ', '_')) <> 'TOTAL_MUNICIPIO'",
     ]
     params = {}
 
-    if ciudad is not None:
-        filtros.append("g.ciudad = :ciudad")
-        params["ciudad"] = ciudad
+    if city is not None:
+        filters.append("g.ciudad = :ciudad")
+        params["ciudad"] = city
 
     sql = f"""
         WITH vivienda_stats AS (
@@ -113,7 +113,7 @@ def get_valoraciones_viviendas(
             JOIN dim_geografia g
                 ON f.id_geografia = g.id_geografia
 
-            WHERE {" AND ".join(filtros)}
+            WHERE {" AND ".join(filters)}
 
             GROUP BY
                 f.id_vivienda,
@@ -157,8 +157,8 @@ def get_valoraciones_viviendas(
     return run_query(sql, params)
 
 
-def get_reserva_instantanea_disponibilidad(
-    ciudad: str | None = None,
+def get_instant_booking_availability(
+    city: str | None = None,
 ):
     sql = """
         SELECT
@@ -208,4 +208,4 @@ def get_reserva_instantanea_disponibilidad(
             tipo_reserva
     """
 
-    return run_query(sql, {"ciudad": ciudad})
+    return run_query(sql, {"ciudad": city})

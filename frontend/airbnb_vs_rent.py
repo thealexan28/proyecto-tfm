@@ -3,9 +3,9 @@ import plotly.express as px
 import streamlit as st
 
 from backend.queries import (
-    get_ciudades_disponibles,
-    get_comparativa_alquiler_ciudad,
-    get_comparativa_alquiler_barrios,
+    get_available_cities,
+    get_city_rental_comparison,
+    get_neighborhood_rental_comparison,
 )
 
 
@@ -23,7 +23,7 @@ def format_ratio(value):
     return f"{value:.2f}x"
 
 
-def render_airbnb_vs_alquiler():
+def render_airbnb_vs_rent():
     st.title("🏠 Airbnb vs long-term rentals")
 
     st.markdown(
@@ -41,27 +41,27 @@ def render_airbnb_vs_alquiler():
     st.divider()
 
     # =========================
-    # Filtros
+    # Filters
     # =========================
-    ciudades_df = get_ciudades_disponibles()
+    cities_df = get_available_cities()
 
-    if ciudades_df.empty:
+    if cities_df.empty:
         st.warning("No cities are available in the database.")
         return
 
-    ciudades = ciudades_df["ciudad"].dropna().sort_values().tolist()
+    cities = cities_df["ciudad"].dropna().sort_values().tolist()
 
     col_filter_1, col_filter_2 = st.columns([2, 1])
 
     with col_filter_1:
-        ciudad_seleccionada = st.selectbox(
+        selected_city = st.selectbox(
             "Select a city",
-            options=["All cities"] + ciudades,
+            options=["All cities"] + cities,
             index=0,
         )
 
     with col_filter_2:
-        limite = st.slider(
+        limit = st.slider(
             "Neighborhoods to display",
             min_value=5,
             max_value=30,
@@ -69,35 +69,31 @@ def render_airbnb_vs_alquiler():
             step=5,
         )
 
-    ciudad_param = (
-        None
-        if ciudad_seleccionada == "All cities"
-        else ciudad_seleccionada
-    )
+    city_filter = None if selected_city == "All cities" else selected_city
 
     # =========================
-    # Carga de datos
+    # Data loading
     # =========================
-    df_ciudad = get_comparativa_alquiler_ciudad(
-        ciudad=ciudad_param,
+    city_df = get_city_rental_comparison(
+        city=city_filter,
     )
 
-    df_barrios = get_comparativa_alquiler_barrios(
-        ciudad=ciudad_param,
-        limite=limite,
+    neighborhoods_df = get_neighborhood_rental_comparison(
+        city=city_filter,
+        limit=limit,
     )
 
-    if df_ciudad.empty:
+    if city_df.empty:
         st.warning("No data is available for the selected filters.")
         return
 
     # =========================
-    # BLOQUE 1: comparación principal ciudad
+    # SECTION 1: city comparison
     # =========================
     st.subheader("Monthly gap by city")
 
-    if ciudad_param is None:
-        df_plot = df_ciudad[
+    if city_filter is None:
+        df_plot = city_df[
             [
                 "ciudad",
                 "precio_airbnb_mensualizado",
@@ -122,7 +118,7 @@ def render_airbnb_vs_alquiler():
             value_name="Monthly amount",
         )
 
-        fig_comparacion = px.bar(
+        comparison_figure = px.bar(
             df_melt,
             x="ciudad",
             y="Monthly amount",
@@ -136,24 +132,24 @@ def render_airbnb_vs_alquiler():
             },
         )
 
-        fig_comparacion.update_traces(
+        comparison_figure.update_traces(
             texttemplate="%{text:,.0f} €",
             textposition="outside",
         )
 
-        fig_comparacion.update_layout(
+        comparison_figure.update_layout(
             height=500,
             yaxis_title="Monthly amount (€)",
             xaxis_title="City",
             margin=dict(l=20, r=20, t=70, b=20),
         )
 
-        st.plotly_chart(fig_comparacion, width="stretch")
+        st.plotly_chart(comparison_figure, width="stretch")
 
-        diferencia_media = df_ciudad["diferencia_mensual"].mean()
-        ratio_medio = df_ciudad["ratio_airbnb_vs_alquiler"].mean()
+        average_difference = city_df["diferencia_mensual"].mean()
+        average_ratio = city_df["ratio_airbnb_vs_alquiler"].mean()
 
-        ciudad_mayor_dif = df_ciudad.sort_values(
+        city_with_largest_gap = city_df.sort_values(
             "diferencia_mensual",
             ascending=False,
         ).iloc[0]
@@ -162,43 +158,43 @@ def render_airbnb_vs_alquiler():
 
         col1.metric(
             "Average difference",
-            format_currency(diferencia_media),
+            format_currency(average_difference),
         )
 
         col2.metric(
             "Average Airbnb/rent ratio",
-            format_ratio(ratio_medio),
+            format_ratio(average_ratio),
         )
 
         col3.metric(
             "Largest difference",
-            ciudad_mayor_dif["ciudad"],
-            format_currency(ciudad_mayor_dif["diferencia_mensual"]),
+            city_with_largest_gap["ciudad"],
+            format_currency(city_with_largest_gap["diferencia_mensual"]),
         )
 
     else:
-        fila = df_ciudad.iloc[0]
+        row = city_df.iloc[0]
 
         col1, col2, col3, col4 = st.columns(4)
 
         col1.metric(
             "Monthly equivalent Airbnb price",
-            format_currency(fila["precio_airbnb_mensualizado"]),
+            format_currency(row["precio_airbnb_mensualizado"]),
         )
 
         col2.metric(
             "Municipal long-term rent",
-            format_currency(fila["alquiler_habitual_municipal"]),
+            format_currency(row["alquiler_habitual_municipal"]),
         )
 
         col3.metric(
             "Monthly difference",
-            format_currency(fila["diferencia_mensual"]),
+            format_currency(row["diferencia_mensual"]),
         )
 
         col4.metric(
             "Airbnb/rent ratio",
-            format_ratio(fila["ratio_airbnb_vs_alquiler"]),
+            format_ratio(row["ratio_airbnb_vs_alquiler"]),
         )
 
         df_plot = pd.DataFrame(
@@ -208,45 +204,45 @@ def render_airbnb_vs_alquiler():
                     "Municipal long-term rent",
                 ],
                 "Monthly amount": [
-                    fila["precio_airbnb_mensualizado"],
-                    fila["alquiler_habitual_municipal"],
+                    row["precio_airbnb_mensualizado"],
+                    row["alquiler_habitual_municipal"],
                 ],
             }
         )
 
-        fig_comparacion = px.bar(
+        comparison_figure = px.bar(
             df_plot,
             x="Metric",
             y="Monthly amount",
             text="Monthly amount",
-            title=f"Monthly comparison in {ciudad_seleccionada}",
+            title=f"Monthly comparison in {selected_city}",
             labels={
                 "Monthly amount": "Monthly amount (€)",
             },
         )
 
-        fig_comparacion.update_traces(
+        comparison_figure.update_traces(
             texttemplate="%{text:,.0f} €",
             textposition="outside",
         )
 
-        fig_comparacion.update_layout(
+        comparison_figure.update_layout(
             height=450,
             yaxis_title="Monthly amount (€)",
             xaxis_title="",
             margin=dict(l=20, r=20, t=70, b=20),
         )
 
-        st.plotly_chart(fig_comparacion, width="stretch")
+        st.plotly_chart(comparison_figure, width="stretch")
 
     st.divider()
 
     # =========================
-    # BLOQUE 2: contexto residencial municipal
+    # SECTION 2: municipal housing context
     # =========================
     st.subheader("Municipal housing context")
 
-    contexto_cols = [
+    context_columns = [
         "ciudad",
         "alquiler_habitual_municipal",
         "renta_media_hogar",
@@ -257,9 +253,9 @@ def render_airbnb_vs_alquiler():
         "indice_presion_turistica",
     ]
 
-    contexto_df = df_ciudad[contexto_cols].copy()
+    context_df = city_df[context_columns].copy()
 
-    contexto_tabla = contexto_df.rename(
+    context_table = context_df.rename(
         columns={
             "ciudad": "City",
             "alquiler_habitual_municipal": "Municipal long-term rent",
@@ -273,7 +269,7 @@ def render_airbnb_vs_alquiler():
     )
 
     st.dataframe(
-        contexto_tabla,
+        context_table,
         width="stretch",
         hide_index=True,
     )
@@ -281,41 +277,39 @@ def render_airbnb_vs_alquiler():
     st.divider()
 
     # =========================
-    # BLOQUE 3: barrios frente a referencia municipal
+    # SECTION 3: neighborhoods vs municipal benchmark
     # =========================
     st.subheader("Neighborhoods vs the municipal benchmark")
 
-    if df_barrios.empty:
+    if neighborhoods_df.empty:
         st.warning("No neighborhood data is available for the selected filters.")
     else:
-        if ciudad_param is None:
-            df_barrios["zona"] = (
-                df_barrios["barrio"] + " (" + df_barrios["ciudad"] + ")"
+        if city_filter is None:
+            neighborhoods_df["area_label"] = (
+                neighborhoods_df["barrio"] + " (" + neighborhoods_df["ciudad"] + ")"
             )
-            titulo_barrios = (
-                f"Top {limite} neighborhoods by difference from municipal rent"
+            neighborhood_chart_title = (
+                f"Top {limit} neighborhoods by difference from municipal rent"
             )
         else:
-            df_barrios["zona"] = df_barrios["barrio"]
-            titulo_barrios = (
-                f"Top {limite} neighborhoods by difference from municipal rent in {ciudad_seleccionada}"
-            )
+            neighborhoods_df["area_label"] = neighborhoods_df["barrio"]
+            neighborhood_chart_title = f"Top {limit} neighborhoods by difference from municipal rent in {selected_city}"
 
-        df_chart = df_barrios.sort_values(
+        df_chart = neighborhoods_df.sort_values(
             "diferencia_frente_alquiler_municipal",
             ascending=True,
         )
 
-        fig_barrios = px.bar(
+        neighborhoods_figure = px.bar(
             df_chart,
             x="diferencia_frente_alquiler_municipal",
-            y="zona",
+            y="area_label",
             orientation="h",
             text="diferencia_frente_alquiler_municipal",
-            title=titulo_barrios,
+            title=neighborhood_chart_title,
             labels={
                 "diferencia_frente_alquiler_municipal": "Difference from municipal rent (€)",
-                "zona": "Neighborhood",
+                "area_label": "Neighborhood",
             },
             hover_data={
                 "ciudad": True,
@@ -324,38 +318,38 @@ def render_airbnb_vs_alquiler():
                 "precio_airbnb_mensualizado_barrio": ":.2f",
                 "alquiler_habitual_municipal": ":.2f",
                 "ratio_frente_alquiler_municipal": ":.2f",
-                "zona": False,
+                "area_label": False,
             },
         )
 
-        fig_barrios.update_traces(
+        neighborhoods_figure.update_traces(
             texttemplate="%{text:,.0f} €",
             textposition="outside",
         )
 
-        fig_barrios.update_layout(
-            height=max(450, limite * 34),
+        neighborhoods_figure.update_layout(
+            height=max(450, limit * 34),
             xaxis_title="Difference from municipal rent (€)",
             yaxis_title="Neighborhood",
             margin=dict(l=20, r=20, t=70, b=20),
         )
 
-        st.plotly_chart(fig_barrios, width="stretch")
+        st.plotly_chart(neighborhoods_figure, width="stretch")
 
     st.divider()
 
     # =========================
-    # BLOQUE 4: relación concentración-precio
+    # SECTION 4: concentration-price relationship
     # =========================
     st.subheader("Relationship between concentration and Airbnb price")
 
-    if not df_barrios.empty:
+    if not neighborhoods_df.empty:
         fig_scatter = px.scatter(
-            df_barrios,
+            neighborhoods_df,
             x="num_viviendas",
             y="precio_airbnb_mensualizado_barrio",
             size="ingreso_potencial_total",
-            color="ciudad" if ciudad_param is None else None,
+            color="ciudad" if city_filter is None else None,
             hover_name="barrio",
             title="Number of properties vs monthly equivalent Airbnb price by neighborhood",
             labels={
@@ -378,14 +372,14 @@ def render_airbnb_vs_alquiler():
     st.divider()
 
     # =========================
-    # BLOQUE 5: tabla detalle barrios
+    # SECTION 5: neighborhood details
     # =========================
     st.subheader("Detailed table by neighborhood")
 
-    if not df_barrios.empty:
-        tabla = df_barrios.copy()
+    if not neighborhoods_df.empty:
+        table = neighborhoods_df.copy()
 
-        tabla = tabla.rename(
+        table = table.rename(
             columns={
                 "ciudad": "City",
                 "barrio": "Neighborhood",
@@ -403,7 +397,7 @@ def render_airbnb_vs_alquiler():
             }
         )
 
-        columnas = [
+        columns = [
             "City",
             "Neighborhood",
             "No. of properties",
@@ -420,7 +414,7 @@ def render_airbnb_vs_alquiler():
         ]
 
         st.dataframe(
-            tabla[columnas],
+            table[columns],
             width="stretch",
             hide_index=True,
         )

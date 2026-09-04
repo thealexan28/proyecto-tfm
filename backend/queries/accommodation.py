@@ -3,28 +3,28 @@
 from backend.db import run_query
 
 
-def get_analisis_tipo_alojamiento(
-    ciudad: str | None = None,
-    agrupar_por: str = "tipo_habitacion",
+def get_accommodation_type_analysis(
+    city: str | None = None,
+    group_by: str = "room_type",
 ):
     """
     Aggregated analysis by room type or property type.
     Uses all available information in FACT_DISPONIBILIDAD_ALOJAMIENTO.
     """
 
-    columnas_validas = {
-        "tipo_habitacion": "ta.tipo_habitacion",
-        "tipo_propiedad": "ta.tipo_propiedad",
+    valid_columns = {
+        "room_type": "ta.tipo_habitacion",
+        "property_type": "ta.tipo_propiedad",
     }
 
-    if agrupar_por not in columnas_validas:
-        agrupar_por = "tipo_habitacion"
+    if group_by not in valid_columns:
+        group_by = "room_type"
 
-    columna = columnas_validas[agrupar_por]
+    column = valid_columns[group_by]
 
     sql = f"""
         SELECT
-            NVL({columna}, 'Unclassified') AS tipo_alojamiento,
+            NVL({column}, 'Unclassified') AS tipo_alojamiento,
 
             COUNT(DISTINCT f.id_vivienda) AS num_viviendas,
 
@@ -75,7 +75,7 @@ def get_analisis_tipo_alojamiento(
           AND UPPER(REPLACE(g.barrio, ' ', '_')) <> 'TOTAL_MUNICIPIO'
 
         GROUP BY
-            NVL({columna}, 'Unclassified')
+            NVL({column}, 'Unclassified')
 
         ORDER BY
             precio_medio_diario DESC NULLS LAST
@@ -84,14 +84,14 @@ def get_analisis_tipo_alojamiento(
     return run_query(
         sql,
         {
-            "ciudad": ciudad,
+            "ciudad": city,
         },
     )
 
 
-def get_precio_por_capacidad(
-    ciudad: str | None = None,
-    min_viviendas: int = 5,
+def get_price_by_capacity(
+    city: str | None = None,
+    min_listings: int = 5,
 ):
     """
     Relationship between property capacity and average daily price.
@@ -149,7 +149,7 @@ def get_precio_por_capacidad(
     return run_query(
         sql,
         {
-            "ciudad": ciudad,
-            "min_viviendas": min_viviendas,
+            "ciudad": city,
+            "min_viviendas": min_listings,
         },
     )

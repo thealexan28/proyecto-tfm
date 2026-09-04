@@ -3,7 +3,7 @@
 from backend.db import run_query
 
 
-def get_ciudades_disponibles():
+def get_available_cities():
     """Return only cities with records in the accommodation fact table."""
 
     sql = """
@@ -22,10 +22,8 @@ def get_ciudades_disponibles():
     return run_query(sql)
 
 
-def get_barrios_disponibles_por_ciudad(ciudad: str):
-    """
-    Devuelve los barrios disponibles para una ciudad concreta.
-    """
+def get_available_neighborhoods_by_city(city: str):
+    """Return the available neighborhoods for a specific city."""
 
     sql = """
         SELECT DISTINCT
@@ -42,4 +40,4 @@ def get_barrios_disponibles_por_ciudad(ciudad: str):
         ORDER BY g.barrio
     """
 
-    return run_query(sql, {"ciudad": ciudad})
+    return run_query(sql, {"ciudad": city})

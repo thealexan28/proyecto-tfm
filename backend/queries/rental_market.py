@@ -10,11 +10,11 @@ RENTAL_COMPARISON_END_DATE = "2025-11-30"
 RENTAL_CONTEXT_DATE = "2025-11-30"
 
 
-def get_comparativa_alquiler_ciudad(
-    ciudad: str | None = None,
-    fecha_inicio: str = RENTAL_COMPARISON_START_DATE,
-    fecha_fin: str = RENTAL_COMPARISON_END_DATE,
-    fecha_contexto: str = RENTAL_CONTEXT_DATE,
+def get_city_rental_comparison(
+    city: str | None = None,
+    start_date: str = RENTAL_COMPARISON_START_DATE,
+    end_date: str = RENTAL_COMPARISON_END_DATE,
+    context_date: str = RENTAL_CONTEXT_DATE,
 ):
     """Compare monthly equivalent Airbnb prices with municipal rent."""
 
@@ -141,20 +141,20 @@ def get_comparativa_alquiler_ciudad(
     return run_query(
         sql,
         {
-            "ciudad": ciudad,
-            "fecha_inicio": fecha_inicio,
-            "fecha_fin": fecha_fin,
-            "fecha_contexto": fecha_contexto,
+            "ciudad": city,
+            "fecha_inicio": start_date,
+            "fecha_fin": end_date,
+            "fecha_contexto": context_date,
         },
     )
 
 
-def get_comparativa_alquiler_barrios(
-    ciudad: str | None = None,
-    limite: int = 15,
-    fecha_inicio: str = RENTAL_COMPARISON_START_DATE,
-    fecha_fin: str = RENTAL_COMPARISON_END_DATE,
-    fecha_contexto: str = RENTAL_CONTEXT_DATE,
+def get_neighborhood_rental_comparison(
+    city: str | None = None,
+    limit: int = 15,
+    start_date: str = RENTAL_COMPARISON_START_DATE,
+    end_date: str = RENTAL_COMPARISON_END_DATE,
+    context_date: str = RENTAL_CONTEXT_DATE,
 ):
     """Compare neighborhood Airbnb prices with the municipal rent benchmark."""
 
@@ -288,10 +288,10 @@ def get_comparativa_alquiler_barrios(
     return run_query(
         sql,
         {
-            "ciudad": ciudad,
-            "limite": limite,
-            "fecha_inicio": fecha_inicio,
-            "fecha_fin": fecha_fin,
-            "fecha_contexto": fecha_contexto,
+            "ciudad": city,
+            "limite": limit,
+            "fecha_inicio": start_date,
+            "fecha_fin": end_date,
+            "fecha_contexto": context_date,
         },
     )

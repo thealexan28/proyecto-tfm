@@ -2,8 +2,8 @@ import streamlit as st
 import plotly.express as px
 
 from backend.queries import (
-    get_ciudades_disponibles,
-    get_ingresos_potenciales_barrios,
+    get_available_cities,
+    get_neighborhood_potential_revenue,
 )
 
 
@@ -21,7 +21,7 @@ def format_currency(value):
     return f"{value:,.0f} €".replace(",", ".")
 
 
-def render_ingresos_potenciales():
+def render_potential_revenue():
     st.title("💰 Potential revenue by neighborhood")
 
     st.markdown(
@@ -34,27 +34,27 @@ def render_ingresos_potenciales():
     st.divider()
 
     # =========================
-    # Filtros
+    # Filters
     # =========================
-    ciudades_df = get_ciudades_disponibles()
+    cities_df = get_available_cities()
 
-    if ciudades_df.empty:
+    if cities_df.empty:
         st.warning("No cities are available in the database.")
         return
 
-    ciudades = ciudades_df["ciudad"].dropna().sort_values().tolist()
+    cities = cities_df["ciudad"].dropna().sort_values().tolist()
 
     col_filter_1, col_filter_2 = st.columns([2, 1])
 
     with col_filter_1:
-        ciudad_seleccionada = st.selectbox(
+        selected_city = st.selectbox(
             "Select a city",
-            options=["All cities"] + ciudades,
+            options=["All cities"] + cities,
             index=0,
         )
 
     with col_filter_2:
-        limite = st.slider(
+        limit = st.slider(
             "Number of neighborhoods to display",
             min_value=5,
             max_value=30,
@@ -62,86 +62,90 @@ def render_ingresos_potenciales():
             step=5,
         )
 
-    ciudad_param = None if ciudad_seleccionada == "All cities" else ciudad_seleccionada
+    city_filter = None if selected_city == "All cities" else selected_city
 
     # =========================
-    # Carga de datos
+    # Data loading
     # =========================
-    df = get_ingresos_potenciales_barrios(
-        ciudad=ciudad_param,
-        limite=limite,
+    df = get_neighborhood_potential_revenue(
+        city=city_filter,
+        limit=limit,
     )
 
     if df.empty:
         st.warning("No data is available for the selected filters.")
         return
 
-    if ciudad_param is None:
-        df["zona"] = df["barrio"] + " (" + df["ciudad"] + ")"
-        titulo_grafico = f"Top {limite} neighborhoods by potential revenue"
+    if city_filter is None:
+        df["area_label"] = df["barrio"] + " (" + df["ciudad"] + ")"
+        chart_title = f"Top {limit} neighborhoods by potential revenue"
     else:
-        df["zona"] = df["barrio"]
-        titulo_grafico = f"Top {limite} neighborhoods by potential revenue in {ciudad_seleccionada}"
+        df["area_label"] = df["barrio"]
+        chart_title = (
+            f"Top {limit} neighborhoods by potential revenue in {selected_city}"
+        )
 
     # =========================
     # KPIs
     # =========================
-    ingreso_top = df["ingreso_potencial_total"].sum()
-    barrio_top = df.iloc[0]["barrio"]
-    ciudad_top = df.iloc[0]["ciudad"]
-    ingreso_barrio_top = df.iloc[0]["ingreso_potencial_total"]
-    viviendas_barrio_top = df.iloc[0]["num_viviendas"]
-    peso_ingreso_top = df.iloc[0]["porcentaje_ingreso_sobre_ciudad"]
+    top_revenue = df["ingreso_potencial_total"].sum()
+    top_neighborhood = df.iloc[0]["barrio"]
+    top_city = df.iloc[0]["ciudad"]
+    top_neighborhood_revenue = df.iloc[0]["ingreso_potencial_total"]
+    top_neighborhood_listings = df.iloc[0]["num_viviendas"]
+    top_revenue_share = df.iloc[0]["porcentaje_ingreso_sobre_ciudad"]
 
     col1, col2, col3 = st.columns(3)
 
     col1.metric(
         "Potential revenue in the ranking",
-        format_currency(ingreso_top),
+        format_currency(top_revenue),
     )
 
     col2.metric(
         "Neighborhood with the highest revenue",
-        barrio_top,
+        top_neighborhood,
     )
 
     col3.metric(
         "Leading neighborhood revenue",
-        format_currency(ingreso_barrio_top),
+        format_currency(top_neighborhood_revenue),
     )
 
     col4, col5, col6 = st.columns(3)
 
     col4.metric(
         "Properties in the leading neighborhood",
-        format_number(viviendas_barrio_top),
+        format_number(top_neighborhood_listings),
     )
 
     col5.metric(
         "Leading neighborhood average daily price",
-        f"{df.iloc[0]['precio_medio_diario']:,.2f} €".replace(",", "X").replace(".", ",").replace("X", ".")
+        f"{df.iloc[0]['precio_medio_diario']:,.2f} €".replace(",", "X")
+        .replace(".", ",")
+        .replace("X", ".")
         if df.iloc[0]["precio_medio_diario"] is not None
         else "-",
     )
 
     col6.metric(
         "Share of city total",
-        f"{peso_ingreso_top:.2f} %",
+        f"{top_revenue_share:.2f} %",
     )
 
-    if ciudad_param is None:
+    if city_filter is None:
         st.caption(
-            f"The neighborhood with the highest potential revenue is **{barrio_top}**, in **{ciudad_top}**."
+            f"The neighborhood with the highest potential revenue is **{top_neighborhood}**, in **{top_city}**."
         )
     else:
         st.caption(
-            f"In **{ciudad_seleccionada}**, the neighborhood with the highest potential revenue is **{barrio_top}**."
+            f"In **{selected_city}**, the neighborhood with the highest potential revenue is **{top_neighborhood}**."
         )
 
     st.divider()
 
     # =========================
-    # Gráfico principal
+    # Main chart
     # =========================
     st.subheader("Neighborhood ranking by potential revenue")
 
@@ -150,13 +154,13 @@ def render_ingresos_potenciales():
     fig = px.bar(
         df_chart,
         x="ingreso_potencial_total",
-        y="zona",
+        y="area_label",
         orientation="h",
         text="ingreso_potencial_total",
-        title=titulo_grafico,
+        title=chart_title,
         labels={
             "ingreso_potencial_total": "Total potential revenue (€)",
-            "zona": "Neighborhood",
+            "area_label": "Neighborhood",
         },
         hover_data={
             "ciudad": True,
@@ -167,7 +171,7 @@ def render_ingresos_potenciales():
             "ingreso_potencial_por_vivienda": ":.2f",
             "precio_medio_diario": ":.2f",
             "tasa_disponibilidad_pct": ":.2f",
-            "zona": False,
+            "area_label": False,
         },
     )
 
@@ -179,7 +183,7 @@ def render_ingresos_potenciales():
     fig.update_layout(
         xaxis_title="Total potential revenue (€)",
         yaxis_title="Neighborhood",
-        height=max(450, limite * 32),
+        height=max(450, limit * 32),
         margin=dict(l=20, r=20, t=70, b=20),
     )
 
@@ -188,33 +192,33 @@ def render_ingresos_potenciales():
     st.divider()
 
     # =========================
-    # Gráfico secundario: ingreso por vivienda
+    # Secondary chart: revenue per listing
     # =========================
     st.subheader("Average potential revenue per property")
 
     fig_media = px.bar(
         df_chart,
         x="ingreso_potencial_por_vivienda",
-        y="zona",
+        y="area_label",
         orientation="h",
         title="Average potential revenue per property in the ranked neighborhoods",
         labels={
             "ingreso_potencial_por_vivienda": "Potential revenue per property (€)",
-            "zona": "Neighborhood",
+            "area_label": "Neighborhood",
         },
         hover_data={
             "ciudad": True,
             "barrio": True,
             "num_viviendas": True,
             "ingreso_potencial_por_vivienda": ":.2f",
-            "zona": False,
+            "area_label": False,
         },
     )
 
     fig_media.update_layout(
         xaxis_title="Potential revenue per property (€)",
         yaxis_title="Neighborhood",
-        height=max(450, limite * 32),
+        height=max(450, limit * 32),
         margin=dict(l=20, r=20, t=70, b=20),
     )
 
@@ -223,13 +227,13 @@ def render_ingresos_potenciales():
     st.divider()
 
     # =========================
-    # Tabla de detalle
+    # Detailed table
     # =========================
     st.subheader("Detailed table")
 
-    tabla = df.copy()
+    table = df.copy()
 
-    tabla = tabla.rename(
+    table = table.rename(
         columns={
             "ciudad": "City",
             "barrio": "Neighborhood",
@@ -243,7 +247,7 @@ def render_ingresos_potenciales():
         }
     )
 
-    columnas = [
+    columns = [
         "City",
         "Neighborhood",
         "No. of short-term rental properties",
@@ -256,9 +260,11 @@ def render_ingresos_potenciales():
     ]
 
     st.dataframe(
-        tabla[columnas],
+        table[columns],
         width="stretch",
         hide_index=True,
     )
 
-    st.caption("Potential revenue is estimated from the daily price and recorded availability.")
+    st.caption(
+        "Potential revenue is estimated from the daily price and recorded availability."
+    )

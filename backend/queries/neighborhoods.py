@@ -3,13 +3,12 @@
 from backend.db import run_query
 
 
-def get_concentracion_barrios(ciudad: str | None = None, limite: int = 15):
+def get_neighborhood_concentration(city: str | None = None, limit: int = 15):
     """
-    Responde a la pregunta:
-    Which neighborhoods contain the most short-term rental properties?
+    Return the neighborhoods with the most short-term rental properties.
 
-    Si ciudad es None, devuelve el ranking general.
-    Si ciudad tiene valor, devuelve el ranking de esa ciudad.
+    Return the overall ranking when ``city`` is ``None``; otherwise, return
+    the ranking for the selected city.
     """
 
     sql = """
@@ -66,19 +65,18 @@ def get_concentracion_barrios(ciudad: str | None = None, limite: int = 15):
     return run_query(
         sql,
         {
-            "ciudad": ciudad,
-            "limite": limite,
+            "ciudad": city,
+            "limite": limit,
         },
     )
 
 
-def get_ingresos_potenciales_barrios(ciudad: str | None = None, limite: int = 15):
+def get_neighborhood_potential_revenue(city: str | None = None, limit: int = 15):
     """
-    Responde a la pregunta:
-    Which neighborhoods generate the most potential revenue?
+    Return the neighborhoods that generate the most potential revenue.
 
-    Si ciudad es None, devuelve el ranking general.
-    Si ciudad tiene valor, devuelve el ranking de esa ciudad.
+    Return the overall ranking when ``city`` is ``None``; otherwise, return
+    the ranking for the selected city.
     """
 
     sql = """
@@ -152,7 +150,7 @@ def get_ingresos_potenciales_barrios(ciudad: str | None = None, limite: int = 15
     return run_query(
         sql,
         {
-            "ciudad": ciudad,
-            "limite": limite,
+            "ciudad": city,
+            "limite": limit,
         },
     )

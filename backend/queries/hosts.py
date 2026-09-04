@@ -3,9 +3,9 @@
 from backend.db import run_query
 
 
-def get_resumen_anfitriones(
-    ciudad: str | None = None,
-    umbral_gran_tenedor: int = 5,
+def get_host_summary(
+    city: str | None = None,
+    large_owner_threshold: int = 5,
 ):
     sql = """
         WITH anfitrion_stats AS (
@@ -93,15 +93,15 @@ def get_resumen_anfitriones(
     return run_query(
         sql,
         {
-            "ciudad": ciudad,
-            "umbral_gran_tenedor": umbral_gran_tenedor,
+            "ciudad": city,
+            "umbral_gran_tenedor": large_owner_threshold,
         },
     )
 
 
-def get_top_anfitriones(
-    ciudad: str | None = None,
-    limite: int = 15,
+def get_top_hosts(
+    city: str | None = None,
+    limit: int = 15,
 ):
     sql = """
         SELECT *
@@ -169,13 +169,13 @@ def get_top_anfitriones(
     return run_query(
         sql,
         {
-            "ciudad": ciudad,
-            "limite": limite,
+            "ciudad": city,
+            "limite": limit,
         },
     )
 
 
-def get_superhost_disponibilidad(ciudad: str | None = None):
+def get_superhost_availability(city: str | None = None):
     sql = """
         SELECT
             CASE
@@ -225,12 +225,12 @@ def get_superhost_disponibilidad(ciudad: str | None = None):
             tipo_anfitrion
     """
 
-    return run_query(sql, {"ciudad": ciudad})
+    return run_query(sql, {"ciudad": city})
 
 
-def get_grandes_tenedores_precio(
-    ciudad: str | None = None,
-    umbral_gran_tenedor: int = 5,
+def get_large_owner_prices(
+    city: str | None = None,
+    large_owner_threshold: int = 5,
 ):
     sql = """
         WITH anfitrion_clase AS (
@@ -308,7 +308,7 @@ def get_grandes_tenedores_precio(
     return run_query(
         sql,
         {
-            "ciudad": ciudad,
-            "umbral_gran_tenedor": umbral_gran_tenedor,
+            "ciudad": city,
+            "umbral_gran_tenedor": large_owner_threshold,
         },
     )

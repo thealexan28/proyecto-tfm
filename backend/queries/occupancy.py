@@ -3,13 +3,12 @@
 from backend.db import run_query
 
 
-def get_ocupacion_por_temporada(ciudad: str | None = None, barrio: str | None = None):
+def get_occupancy_by_season(city: str | None = None, neighborhood: str | None = None):
     """
-    Responde a la pregunta:
-    How does estimated occupancy vary by season?
+    Return estimated occupancy grouped by season.
 
     Estimated occupancy is calculated as the percentage of records
-    en los que el alojamiento aparece como no disponible.
+    in which a listing is marked as unavailable.
     """
 
     sql = """
@@ -70,13 +69,13 @@ def get_ocupacion_por_temporada(ciudad: str | None = None, barrio: str | None = 
     return run_query(
         sql,
         {
-            "ciudad": ciudad,
-            "barrio": barrio,
+            "ciudad": city,
+            "barrio": neighborhood,
         },
     )
 
 
-def get_ocupacion_mensual(ciudad: str | None = None, barrio: str | None = None):
+def get_monthly_occupancy(city: str | None = None, neighborhood: str | None = None):
     """
     Returns the monthly estimated occupancy trend.
     """
@@ -135,7 +134,7 @@ def get_ocupacion_mensual(ciudad: str | None = None, barrio: str | None = None):
     return run_query(
         sql,
         {
-            "ciudad": ciudad,
-            "barrio": barrio,
+            "ciudad": city,
+            "barrio": neighborhood,
         },
     )

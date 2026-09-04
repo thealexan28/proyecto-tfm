@@ -2,10 +2,10 @@ import streamlit as st
 import plotly.express as px
 
 from backend.queries import (
-    get_kpis_generales,
-    get_resumen_por_ciudad,
-    get_top_barrios,
-    get_disponibilidad_por_temporada,
+    get_overview_kpis,
+    get_city_summary,
+    get_top_neighborhoods,
+    get_availability_by_season,
 )
 
 
@@ -20,8 +20,8 @@ def render_home():
 
     st.divider()
 
-    # KPIs generales
-    kpis_df = get_kpis_generales()
+    # Overview KPIs
+    kpis_df = get_overview_kpis()
 
     if kpis_df.empty:
         st.warning("No data is available to build the summary.")
@@ -43,7 +43,9 @@ def render_home():
 
     col3.metric(
         "Average daily price",
-        f"{kpis['precio_medio_diario']:,.2f} €".replace(",", "X").replace(".", ",").replace("X", "."),
+        f"{kpis['precio_medio_diario']:,.2f} €".replace(",", "X")
+        .replace(".", ",")
+        .replace("X", "."),
     )
 
     col4, col5, col6 = st.columns(3)
@@ -65,14 +67,14 @@ def render_home():
 
     st.divider()
 
-    # Resumen por ciudad
+    # Summary by city
     st.subheader("Supply by city")
 
-    ciudad_df = get_resumen_por_ciudad()
+    city_df = get_city_summary()
 
-    if not ciudad_df.empty:
-        fig_ciudad = px.bar(
-            ciudad_df,
+    if not city_df.empty:
+        city_figure = px.bar(
+            city_df,
             x="ciudad",
             y="num_viviendas",
             text="num_viviendas",
@@ -83,16 +85,16 @@ def render_home():
             },
         )
 
-        fig_ciudad.update_traces(textposition="outside")
-        fig_ciudad.update_layout(
+        city_figure.update_traces(textposition="outside")
+        city_figure.update_layout(
             xaxis_title="City",
             yaxis_title="Number of properties",
             height=450,
         )
 
-        st.plotly_chart(fig_ciudad, width="stretch")
+        st.plotly_chart(city_figure, width="stretch")
 
-        ciudad_tabla = ciudad_df.rename(
+        city_table = city_df.rename(
             columns={
                 "ciudad": "City",
                 "num_viviendas": "Short-term rental properties",
@@ -104,7 +106,7 @@ def render_home():
         )
 
         st.dataframe(
-            ciudad_tabla,
+            city_table,
             width="stretch",
             hide_index=True,
         )
@@ -113,48 +115,48 @@ def render_home():
 
     st.divider()
 
-    # Top barrios
+    # Top neighborhoods
     st.subheader("Concentration by neighborhood")
 
-    top_barrios_df = get_top_barrios(limit=10)
+    top_neighborhoods_df = get_top_neighborhoods(limit=10)
 
-    if not top_barrios_df.empty:
-        top_barrios_df["barrio_ciudad"] = (
-            top_barrios_df["barrio"] + " (" + top_barrios_df["ciudad"] + ")"
+    if not top_neighborhoods_df.empty:
+        top_neighborhoods_df["neighborhood_city"] = (
+            top_neighborhoods_df["barrio"] + " (" + top_neighborhoods_df["ciudad"] + ")"
         )
 
-        fig_barrios = px.bar(
-            top_barrios_df.sort_values("num_viviendas", ascending=True),
+        neighborhoods_figure = px.bar(
+            top_neighborhoods_df.sort_values("num_viviendas", ascending=True),
             x="num_viviendas",
-            y="barrio_ciudad",
+            y="neighborhood_city",
             orientation="h",
             title="Neighborhoods with the highest property concentration",
             labels={
                 "num_viviendas": "Number of properties",
-                "barrio_ciudad": "Neighborhood",
+                "neighborhood_city": "Neighborhood",
             },
         )
 
-        fig_barrios.update_layout(
+        neighborhoods_figure.update_layout(
             xaxis_title="Number of properties",
             yaxis_title="Neighborhood",
             height=500,
         )
 
-        st.plotly_chart(fig_barrios, width="stretch")
+        st.plotly_chart(neighborhoods_figure, width="stretch")
     else:
         st.info("No neighborhood data is available yet.")
 
     st.divider()
 
-    # Disponibilidad por temporada
+    # Availability by season
     st.subheader("Availability by season")
 
-    temporada_df = get_disponibilidad_por_temporada()
+    season_df = get_availability_by_season()
 
-    if not temporada_df.empty:
+    if not season_df.empty:
         fig_temp = px.bar(
-            temporada_df,
+            season_df,
             x="temporada",
             y="tasa_disponibilidad_pct",
             color="ciudad",

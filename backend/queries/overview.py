@@ -3,7 +3,7 @@
 from backend.db import run_query
 
 
-def get_kpis_generales():
+def get_overview_kpis():
     sql = """
         SELECT
             COUNT(DISTINCT f.id_vivienda) AS total_viviendas,
@@ -23,7 +23,7 @@ def get_kpis_generales():
     return run_query(sql)
 
 
-def get_resumen_por_ciudad():
+def get_city_summary():
     sql = """
         SELECT
             g.ciudad,
@@ -47,7 +47,7 @@ def get_resumen_por_ciudad():
     return run_query(sql)
 
 
-def get_top_barrios(limit: int = 10):
+def get_top_neighborhoods(limit: int = 10):
     sql = """
         SELECT *
         FROM (
@@ -72,7 +72,7 @@ def get_top_barrios(limit: int = 10):
     return run_query(sql, {"limit": limit})
 
 
-def get_disponibilidad_por_temporada():
+def get_availability_by_season():
     sql = """
         SELECT
             g.ciudad,

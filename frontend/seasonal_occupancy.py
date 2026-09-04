@@ -2,10 +2,10 @@ import streamlit as st
 import plotly.express as px
 
 from backend.queries import (
-    get_ciudades_disponibles,
-    get_barrios_disponibles_por_ciudad,
-    get_ocupacion_por_temporada,
-    get_ocupacion_mensual,
+    get_available_cities,
+    get_available_neighborhoods_by_city,
+    get_occupancy_by_season,
+    get_monthly_occupancy,
 )
 
 
@@ -23,7 +23,7 @@ def format_pct(value):
     return f"{value:.2f} %"
 
 
-def render_ocupacion_temporada():
+def render_seasonal_occupancy():
     st.title("📈 Estimated occupancy by season")
 
     st.markdown(
@@ -36,41 +36,45 @@ def render_ocupacion_temporada():
     st.divider()
 
     # =========================
-    # Filtros
+    # Filters
     # =========================
-    ciudades_df = get_ciudades_disponibles()
+    cities_df = get_available_cities()
 
-    if ciudades_df.empty:
+    if cities_df.empty:
         st.warning("No cities are available in the database.")
         return
 
-    ciudades = ciudades_df["ciudad"].dropna().sort_values().tolist()
+    cities = cities_df["ciudad"].dropna().sort_values().tolist()
 
     col_filter_1, col_filter_2 = st.columns([2, 2])
 
     with col_filter_1:
-        ciudad_seleccionada = st.selectbox(
+        selected_city = st.selectbox(
             "Select a city",
-            options=["All cities"] + ciudades,
+            options=["All cities"] + cities,
             index=0,
         )
 
-    ciudad_param = None if ciudad_seleccionada == "All cities" else ciudad_seleccionada
+    city_filter = None if selected_city == "All cities" else selected_city
 
-    barrio_param = None
+    neighborhood_filter = None
 
     with col_filter_2:
-        if ciudad_param is not None:
-            barrios_df = get_barrios_disponibles_por_ciudad(ciudad_param)
-            barrios = barrios_df["barrio"].dropna().sort_values().tolist()
+        if city_filter is not None:
+            neighborhoods_df = get_available_neighborhoods_by_city(city_filter)
+            neighborhoods = neighborhoods_df["barrio"].dropna().sort_values().tolist()
 
-            barrio_seleccionado = st.selectbox(
+            selected_neighborhood = st.selectbox(
                 "Select a neighborhood",
-                options=["All neighborhoods"] + barrios,
+                options=["All neighborhoods"] + neighborhoods,
                 index=0,
             )
 
-            barrio_param = None if barrio_seleccionado == "All neighborhoods" else barrio_seleccionado
+            neighborhood_filter = (
+                None
+                if selected_neighborhood == "All neighborhoods"
+                else selected_neighborhood
+            )
         else:
             st.selectbox(
                 "Select a neighborhood",
@@ -80,87 +84,85 @@ def render_ocupacion_temporada():
             )
 
     # =========================
-    # Carga de datos
+    # Data loading
     # =========================
-    df_temporada = get_ocupacion_por_temporada(
-        ciudad=ciudad_param,
-        barrio=barrio_param,
+    season_df = get_occupancy_by_season(
+        city=city_filter,
+        neighborhood=neighborhood_filter,
     )
 
-    df_mensual = get_ocupacion_mensual(
-        ciudad=ciudad_param,
-        barrio=barrio_param,
+    monthly_df = get_monthly_occupancy(
+        city=city_filter,
+        neighborhood=neighborhood_filter,
     )
 
-    if df_temporada.empty:
+    if season_df.empty:
         st.warning("No data is available for the selected filters.")
         return
 
     # =========================
-    # KPIs generales
+    # Overview KPIs
     # =========================
-    total_registros = df_temporada["registros_calendario"].sum()
-    total_noches_ocupadas = df_temporada["noches_ocupadas_estimadas"].sum()
-    total_noches_disponibles = df_temporada["noches_disponibles"].sum()
+    total_records = season_df["registros_calendario"].sum()
+    total_unavailable_nights = season_df["noches_ocupadas_estimadas"].sum()
+    total_available_nights = season_df["noches_disponibles"].sum()
 
-    ocupacion_media_ponderada = (
-        total_noches_ocupadas * 100 / total_registros
-        if total_registros > 0
-        else None
+    weighted_average_occupancy = (
+        total_unavailable_nights * 100 / total_records if total_records > 0 else None
     )
 
-    disponibilidad_media_ponderada = (
-        total_noches_disponibles * 100 / total_registros
-        if total_registros > 0
-        else None
+    weighted_average_availability = (
+        total_available_nights * 100 / total_records if total_records > 0 else None
     )
 
-    fila_max = df_temporada.sort_values("ocupacion_estimada_pct", ascending=False).iloc[0]
+    highest_row = season_df.sort_values("ocupacion_estimada_pct", ascending=False).iloc[
+        0
+    ]
 
     col1, col2, col3 = st.columns(3)
 
     col1.metric(
         "Average estimated occupancy",
-        format_pct(ocupacion_media_ponderada),
+        format_pct(weighted_average_occupancy),
     )
 
     col2.metric(
         "Season with the highest occupancy",
-        fila_max["temporada"],
+        highest_row["temporada"],
     )
 
     col3.metric(
         "Occupancy in that season",
-        format_pct(fila_max["ocupacion_estimada_pct"]),
+        format_pct(highest_row["ocupacion_estimada_pct"]),
     )
 
     col4, col5, col6 = st.columns(3)
 
     col4.metric(
         "Nights analyzed",
-        format_number(total_registros),
+        format_number(total_records),
     )
 
     col5.metric(
         "Unavailable nights",
-        format_number(total_noches_ocupadas),
+        format_number(total_unavailable_nights),
     )
 
     col6.metric(
         "Average availability",
-        format_pct(disponibilidad_media_ponderada),
+        format_pct(weighted_average_availability),
     )
 
     st.divider()
 
     # =========================
-    # Gráfico de barras por temporada
+    # Seasonal bar chart
     # =========================
     st.subheader("Estimated occupancy by season")
 
-    if ciudad_param is None:
+    if city_filter is None:
         fig_bar = px.bar(
-            df_temporada,
+            season_df,
             x="temporada",
             y="ocupacion_estimada_pct",
             color="ciudad",
@@ -175,11 +177,11 @@ def render_ocupacion_temporada():
         )
     else:
         fig_bar = px.bar(
-            df_temporada,
+            season_df,
             x="temporada",
             y="ocupacion_estimada_pct",
             text="ocupacion_estimada_pct",
-            title=f"Estimated occupancy by season in {ciudad_seleccionada}",
+            title=f"Estimated occupancy by season in {selected_city}",
             labels={
                 "temporada": "Season",
                 "ocupacion_estimada_pct": "Estimated occupancy (%)",
@@ -204,14 +206,14 @@ def render_ocupacion_temporada():
     st.divider()
 
     # =========================
-    # Línea mensual
+    # Monthly trend
     # =========================
     st.subheader("Monthly estimated occupancy trend")
 
-    if not df_mensual.empty:
-        if ciudad_param is None:
+    if not monthly_df.empty:
+        if city_filter is None:
             fig_line = px.line(
-                df_mensual,
+                monthly_df,
                 x="periodo",
                 y="ocupacion_estimada_pct",
                 color="ciudad",
@@ -225,11 +227,11 @@ def render_ocupacion_temporada():
             )
         else:
             fig_line = px.line(
-                df_mensual,
+                monthly_df,
                 x="periodo",
                 y="ocupacion_estimada_pct",
                 markers=True,
-                title=f"Monthly estimated occupancy trend in {ciudad_seleccionada}",
+                title=f"Monthly estimated occupancy trend in {selected_city}",
                 labels={
                     "periodo": "Month",
                     "ocupacion_estimada_pct": "Estimated occupancy (%)",
@@ -251,13 +253,13 @@ def render_ocupacion_temporada():
     st.divider()
 
     # =========================
-    # Tabla de detalle por temporada
+    # Detailed table by season
     # =========================
     st.subheader("Detailed table by season")
 
-    tabla = df_temporada.copy()
+    table = season_df.copy()
 
-    tabla = tabla.rename(
+    table = table.rename(
         columns={
             "ciudad": "City",
             "temporada": "Season",
@@ -272,7 +274,7 @@ def render_ocupacion_temporada():
         }
     )
 
-    columnas = [
+    columns = [
         "City",
         "Season",
         "No. of properties",
@@ -286,9 +288,11 @@ def render_ocupacion_temporada():
     ]
 
     st.dataframe(
-        tabla[columnas],
+        table[columns],
         width="stretch",
         hide_index=True,
     )
 
-    st.caption("Estimated occupancy represents nights marked as unavailable in the calendar.")
+    st.caption(
+        "Estimated occupancy represents nights marked as unavailable in the calendar."
+    )

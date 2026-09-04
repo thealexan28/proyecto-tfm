@@ -1,15 +1,15 @@
 import pandas as pd
 
-from frontend.anfitriones import crear_etiquetas_anfitrion
-from frontend.tipo_alojamiento import (
-    buscar_habitacion_privada,
-    buscar_vivienda_completa,
-    normalizar_texto,
+from frontend.hosts import build_host_labels
+from frontend.accommodation_type import (
+    find_private_room,
+    find_entire_home,
+    normalize_text,
 )
-from frontend.valoraciones import (
-    crear_muestra_scatter,
-    crear_orden_volumen_resenas,
-    excluir_precios_atipicos,
+from frontend.ratings import (
+    create_scatter_sample,
+    add_review_volume_order,
+    exclude_price_outliers,
 )
 
 
@@ -21,14 +21,14 @@ def test_duplicate_host_names_are_disambiguated_with_ids():
         }
     )
 
-    result = crear_etiquetas_anfitrion(hosts)
+    result = build_host_labels(hosts)
 
-    assert result["etiqueta"].tolist() == [
+    assert result["label"].tolist() == [
         "Alex (ID 12708)",
         "Alex (ID 15212)",
         "Home Club",
     ]
-    assert "etiqueta" not in hosts.columns
+    assert "label" not in hosts.columns
 
 
 def test_review_volume_order_excludes_unknown_categories_from_statistics():
@@ -46,17 +46,17 @@ def test_review_volume_order_excludes_unknown_categories_from_statistics():
         }
     )
 
-    result = crear_orden_volumen_resenas(listings)
+    result = add_review_volume_order(listings)
 
-    assert result["orden_volumen"].iloc[:5].tolist() == [0, 1, 2, 3, 4]
-    assert result["orden_volumen"].iloc[5:].isna().all()
+    assert result["review_volume_order"].iloc[:5].tolist() == [0, 1, 2, 3, 4]
+    assert result["review_volume_order"].iloc[5:].isna().all()
     assert result.loc[5, "volumen_resenas"] == "Unclassified"
 
 
 def test_price_outlier_filter_uses_upper_iqr_boundary():
     listings = pd.DataFrame({"precio_medio_diario": [70, 80, 90, 100, 92_150]})
 
-    result = excluir_precios_atipicos(listings)
+    result = exclude_price_outliers(listings)
 
     assert result["precio_medio_diario"].tolist() == [70, 80, 90, 100]
 
@@ -69,8 +69,8 @@ def test_scatter_sample_is_bounded_per_city_and_reproducible():
         }
     )
 
-    first = crear_muestra_scatter(listings, max_por_ciudad=5)
-    second = crear_muestra_scatter(listings, max_por_ciudad=5)
+    first = create_scatter_sample(listings, max_per_city=5)
+    second = create_scatter_sample(listings, max_per_city=5)
 
     assert first.groupby("ciudad").size().to_dict() == {"Madrid": 5, "Sevilla": 5}
     pd.testing.assert_frame_equal(first, second)
@@ -86,10 +86,10 @@ def test_accommodation_type_helpers_support_source_and_english_values():
         }
     )
 
-    entire_home = buscar_vivienda_completa(accommodation_types)
-    private_room = buscar_habitacion_privada(accommodation_types)
+    entire_home = find_entire_home(accommodation_types)
+    private_room = find_private_room(accommodation_types)
 
     assert entire_home["tipo_alojamiento"] == "Entire home/apt"
     assert private_room["tipo_alojamiento"] == "Habitación privada"
-    assert normalizar_texto(None) == ""
-    assert normalizar_texto("  PRIVATE ROOM  ") == "private room"
+    assert normalize_text(None) == ""
+    assert normalize_text("  PRIVATE ROOM  ") == "private room"
