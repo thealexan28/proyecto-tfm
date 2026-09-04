@@ -1,6 +1,13 @@
 from backend.db import run_query
 
 
+# Fixed reference window used to compare every city over the same 30 days and
+# against residential data from the same reporting date.
+RENTAL_COMPARISON_START_DATE = "2025-11-01"
+RENTAL_COMPARISON_END_DATE = "2025-11-30"
+RENTAL_CONTEXT_DATE = "2025-11-30"
+
+
 def get_kpis_generales():
     sql = """
         SELECT
@@ -96,16 +103,18 @@ def get_disponibilidad_por_temporada():
     return run_query(sql)
 
 def get_ciudades_disponibles():
-    """
-    Devuelve las ciudades disponibles en la tabla de hechos.
-    Se consulta desde la FACT para mostrar solo ciudades con datos cargados.
-    """
+    """Return only cities with records in the accommodation fact table."""
 
     sql = """
         SELECT DISTINCT
             g.ciudad
         FROM dim_geografia g
         WHERE g.ciudad IS NOT NULL
+          AND EXISTS (
+              SELECT 1
+              FROM fact_disponibilidad_alojamiento f
+              WHERE f.id_geografia = g.id_geografia
+          )
         ORDER BY g.ciudad
     """
 
@@ -526,10 +535,12 @@ def get_viviendas_mapa(ciudad: str | None = None, barrio: str | None = None):
 
 def get_comparativa_alquiler_ciudad(
     ciudad: str | None = None,
-    fecha_inicio: str = "2025-11-01",
-    fecha_fin: str = "2025-11-30",
-    fecha_contexto: str = "2025-11-30",
+    fecha_inicio: str = RENTAL_COMPARISON_START_DATE,
+    fecha_fin: str = RENTAL_COMPARISON_END_DATE,
+    fecha_contexto: str = RENTAL_CONTEXT_DATE,
 ):
+    """Compare monthly equivalent Airbnb prices with municipal rent."""
+
     sql = """
         WITH airbnb_ciudad AS (
             SELECT
@@ -664,10 +675,12 @@ def get_comparativa_alquiler_ciudad(
 def get_comparativa_alquiler_barrios(
     ciudad: str | None = None,
     limite: int = 15,
-    fecha_inicio: str = "2025-11-01",
-    fecha_fin: str = "2025-11-30",
-    fecha_contexto: str = "2025-11-30",
+    fecha_inicio: str = RENTAL_COMPARISON_START_DATE,
+    fecha_fin: str = RENTAL_COMPARISON_END_DATE,
+    fecha_contexto: str = RENTAL_CONTEXT_DATE,
 ):
+    """Compare neighborhood Airbnb prices with the municipal rent benchmark."""
+
     sql = """
         SELECT *
         FROM (

@@ -46,7 +46,7 @@ def crear_orden_volumen_resenas(df):
 
     def calcular_orden(valor):
         if pd.isna(valor):
-            return 99
+            return float("nan")
 
         texto = str(valor).lower().strip()
 
@@ -65,7 +65,7 @@ def crear_orden_volumen_resenas(df):
         if "muy" in texto:
             return 4
 
-        return 50
+        return float("nan")
 
     df["volumen_resenas"] = df["volumen_resenas"].fillna("Unclassified")
     df["orden_volumen"] = df["volumen_resenas"].apply(calcular_orden)

@@ -28,9 +28,14 @@ def render_airbnb_vs_alquiler():
 
     st.markdown(
         """
-        Compares monthly Airbnb revenue with municipal long-term rent.
+        Compares the monthly equivalent Airbnb price with municipal long-term rent.
         This view highlights the cities and neighborhoods with the largest price gap.
         """
+    )
+
+    st.caption(
+        "Reference period: 1–30 November 2025. All cities use the same 30-day "
+        "window and the same municipal reporting date."
     )
 
     st.divider()
@@ -102,7 +107,7 @@ def render_airbnb_vs_alquiler():
 
         df_plot = df_plot.rename(
             columns={
-                "precio_airbnb_mensualizado": "Monthly Airbnb revenue",
+                "precio_airbnb_mensualizado": "Monthly equivalent Airbnb price",
                 "alquiler_habitual_municipal": "Municipal long-term rent",
             }
         )
@@ -110,7 +115,7 @@ def render_airbnb_vs_alquiler():
         df_melt = df_plot.melt(
             id_vars="ciudad",
             value_vars=[
-                "Monthly Airbnb revenue",
+                "Monthly equivalent Airbnb price",
                 "Municipal long-term rent",
             ],
             var_name="Metric",
@@ -124,7 +129,7 @@ def render_airbnb_vs_alquiler():
             color="Metric",
             barmode="group",
             text="Monthly amount",
-            title="Monthly Airbnb revenue vs municipal long-term rent",
+            title="Monthly equivalent Airbnb price vs municipal long-term rent",
             labels={
                 "ciudad": "City",
                 "Monthly amount": "Monthly amount (€)",
@@ -177,7 +182,7 @@ def render_airbnb_vs_alquiler():
         col1, col2, col3, col4 = st.columns(4)
 
         col1.metric(
-            "Monthly Airbnb revenue",
+            "Monthly equivalent Airbnb price",
             format_currency(fila["precio_airbnb_mensualizado"]),
         )
 
@@ -199,7 +204,7 @@ def render_airbnb_vs_alquiler():
         df_plot = pd.DataFrame(
             {
                 "Metric": [
-                    "Monthly Airbnb revenue",
+                    "Monthly equivalent Airbnb price",
                     "Municipal long-term rent",
                 ],
                 "Monthly amount": [
@@ -352,10 +357,10 @@ def render_airbnb_vs_alquiler():
             size="ingreso_potencial_total",
             color="ciudad" if ciudad_param is None else None,
             hover_name="barrio",
-            title="Number of properties vs monthly Airbnb revenue by neighborhood",
+            title="Number of properties vs monthly equivalent Airbnb price by neighborhood",
             labels={
                 "num_viviendas": "Number of short-term rental properties",
-                "precio_airbnb_mensualizado_barrio": "Monthly Airbnb revenue by neighborhood (€)",
+                "precio_airbnb_mensualizado_barrio": "Monthly equivalent Airbnb price by neighborhood (€)",
                 "ingreso_potencial_total": "Total potential revenue",
                 "ciudad": "City",
             },
@@ -364,7 +369,7 @@ def render_airbnb_vs_alquiler():
         fig_scatter.update_layout(
             height=500,
             xaxis_title="Number of short-term rental properties",
-            yaxis_title="Monthly Airbnb revenue by neighborhood (€)",
+            yaxis_title="Monthly equivalent Airbnb price by neighborhood (€)",
             margin=dict(l=20, r=20, t=70, b=20),
         )
 
@@ -386,7 +391,7 @@ def render_airbnb_vs_alquiler():
                 "barrio": "Neighborhood",
                 "num_viviendas": "No. of properties",
                 "precio_medio_airbnb_diario": "Daily Airbnb price",
-                "precio_airbnb_mensualizado_barrio": "Monthly neighborhood Airbnb revenue",
+                "precio_airbnb_mensualizado_barrio": "Monthly equivalent neighborhood Airbnb price",
                 "alquiler_habitual_municipal": "Municipal long-term rent",
                 "diferencia_frente_alquiler_municipal": "Difference from municipal benchmark",
                 "ratio_frente_alquiler_municipal": "Ratio to municipal benchmark",
@@ -403,7 +408,7 @@ def render_airbnb_vs_alquiler():
             "Neighborhood",
             "No. of properties",
             "Daily Airbnb price",
-            "Monthly neighborhood Airbnb revenue",
+            "Monthly equivalent neighborhood Airbnb price",
             "Municipal long-term rent",
             "Difference from municipal benchmark",
             "Ratio to municipal benchmark",
