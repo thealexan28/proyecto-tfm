@@ -5,7 +5,6 @@ __pycache__/
 venv/
 .env.*
 .DS_Store
-data/
 wallet/
 Wallet_*/
 *.pem
@@ -13,3 +12,7 @@ Wallet_*/
 *.jks
 tnsnames.ora
 sqlnet.ora
+
+# Original Pentaho files contain legacy embedded connection data.
+etl_process/
+pentaho/backup_originales/
