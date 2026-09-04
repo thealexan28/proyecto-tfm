@@ -53,6 +53,17 @@ El fichero `contexto_residencial.csv` reúne indicadores agregados de alquiler h
 
 Los ficheros se conservan por ciudad para mantener la trazabilidad de origen antes de su integración en el Data Warehouse.
 
+## Nota sobre los datasets y Git LFS
+
+Algunos de los ficheros de datos utilizados en el proyecto superan el tamaño recomendado para su almacenamiento directo en Git. Por este motivo, los datasets de mayor tamaño se gestionan mediante **Git LFS (Git Large File Storage)**.
+
+Los archivos siguen formando parte del repositorio, pero para descargarlos correctamente al clonar el proyecto es necesario disponer de Git LFS instalado.
+
+```bash
+git lfs install
+git clone https://github.com/thealexan28/proyecto-tfm.git
+```
+
 ## Modelo dimensional
 
 El Data Warehouse utiliza un esquema dimensional con dos procesos de negocio relacionados.
