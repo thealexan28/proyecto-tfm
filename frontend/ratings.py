@@ -99,6 +99,18 @@ def create_scatter_sample(df, max_per_city=250):
     return pd.concat(samples, ignore_index=True)
 
 
+def prepare_neighborhood_rating_chart(df, include_city):
+    """Build and sort the neighborhood labels used by the ratings chart."""
+
+    result = df.copy()
+    if include_city:
+        result["area_label"] = result["barrio"] + " (" + result["ciudad"] + ")"
+    else:
+        result["area_label"] = result["barrio"]
+
+    return result.sort_values("puntuacion_media", ascending=True)
+
+
 def render_ratings():
     st.title("⭐ Ratings analysis")
 
@@ -239,24 +251,20 @@ def render_ratings():
     st.subheader("Which neighborhoods have the highest-rated properties?")
 
     if not neighborhoods_df.empty:
-        if city_filter is None:
-            neighborhoods_df["area_label"] = (
-                neighborhoods_df["barrio"] + " (" + neighborhoods_df["ciudad"] + ")"
-            )
-        else:
-            neighborhoods_df["area_label"] = neighborhoods_df["barrio"]
-
-        df_chart = neighborhoods_df.sort_values("average_rating", ascending=True)
+        df_chart = prepare_neighborhood_rating_chart(
+            neighborhoods_df,
+            include_city=city_filter is None,
+        )
 
         neighborhoods_figure = px.bar(
             df_chart,
-            x="average_rating",
+            x="puntuacion_media",
             y="area_label",
             orientation="h",
-            text="average_rating",
+            text="puntuacion_media",
             title=f"Top {limit} neighborhoods by average rating",
             labels={
-                "average_rating": "Average rating",
+                "puntuacion_media": "Average rating",
                 "area_label": "Neighborhood",
             },
             hover_data={

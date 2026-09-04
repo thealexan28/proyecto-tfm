@@ -7,9 +7,10 @@ from frontend.accommodation_type import (
     normalize_text,
 )
 from frontend.ratings import (
-    create_scatter_sample,
     add_review_volume_order,
+    create_scatter_sample,
     exclude_price_outliers,
+    prepare_neighborhood_rating_chart,
 )
 
 
@@ -93,3 +94,22 @@ def test_accommodation_type_helpers_support_source_and_english_values():
     assert private_room["tipo_alojamiento"] == "Habitación privada"
     assert normalize_text(None) == ""
     assert normalize_text("  PRIVATE ROOM  ") == "private room"
+
+
+def test_neighborhood_rating_chart_uses_query_column_and_sorts_ascending():
+    neighborhoods = pd.DataFrame(
+        {
+            "ciudad": ["Madrid", "Sevilla"],
+            "barrio": ["Centro", "Triana"],
+            "puntuacion_media": [4.8, 4.6],
+        }
+    )
+
+    result = prepare_neighborhood_rating_chart(neighborhoods, include_city=True)
+
+    assert result["puntuacion_media"].tolist() == [4.6, 4.8]
+    assert result["area_label"].tolist() == [
+        "Triana (Sevilla)",
+        "Centro (Madrid)",
+    ]
+    assert "area_label" not in neighborhoods.columns
