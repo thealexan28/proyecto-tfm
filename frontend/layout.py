@@ -1,27 +1,27 @@
 import streamlit as st
 import plotly.express as px
 
-from frontend.i18n import install_english_ui
+from frontend.i18n import install_data_translation_hooks
 
 
 MAIN_NAV_ITEMS = [
     ("app.py", "Main dashboard"),
-    ("pages/4_Mapa_viviendas.py", "Property map"),
+    ("pages/4_Property_map.py", "Property map"),
 ]
 
 
 REQUIRED_NAV_ITEMS = [
-    ("pages/1_Concentracion_por_barrios.py", "1. Neighborhood concentration"),
-    ("pages/2_Ingresos_potenciales.py", "2. Potential revenue"),
-    ("pages/5_Airbnb_vs_alquiler.py", "3. Airbnb vs long-term rentals"),
-    ("pages/3_Ocupacion_temporada.py", "4. Seasonal occupancy"),
+    ("pages/1_Neighborhood_concentration.py", "1. Neighborhood concentration"),
+    ("pages/2_Potential_revenue.py", "2. Potential revenue"),
+    ("pages/5_Airbnb_vs_rent.py", "3. Airbnb vs long-term rentals"),
+    ("pages/3_Seasonal_occupancy.py", "4. Seasonal occupancy"),
 ]
 
 
 COMPLEMENTARY_NAV_ITEMS = [
-    ("pages/6_Tipo_alojamiento.py", "Property type"),
-    ("pages/7_Anfitriones.py", "Hosts"),
-    ("pages/8_Valoraciones.py", "Ratings"),
+    ("pages/6_Accommodation_type.py", "Property type"),
+    ("pages/7_Hosts.py", "Hosts"),
+    ("pages/8_Ratings.py", "Ratings"),
 ]
 
 
@@ -158,7 +158,7 @@ def render_sidebar():
 
 
 def configure_page(page_title, page_icon=":house_with_garden:"):
-    install_english_ui()
+    install_data_translation_hooks()
     st.set_page_config(
         page_title=page_title,
         page_icon=page_icon,

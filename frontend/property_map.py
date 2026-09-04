@@ -1,12 +1,12 @@
 import streamlit as st
 import pydeck as pdk
 
-from backend.queries import get_viviendas_mapa
+from backend.queries import get_map_listings
 
 
 CARTO_VOYAGER_STYLE = "https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json"
 
-CENTROS_CIUDAD = {
+CITY_CENTERS = {
     "Madrid": (40.4168, -3.7038),
     "Málaga": (36.7213, -4.4214),
     "Sevilla": (37.3891, -5.9845),
@@ -14,7 +14,7 @@ CENTROS_CIUDAD = {
 }
 
 
-def render_mapa_viviendas():
+def render_property_map():
     st.title("🗺️ Short-term rental property map")
 
     st.markdown(
@@ -24,13 +24,13 @@ def render_mapa_viviendas():
         """
     )
 
-    ciudad = st.selectbox(
+    city = st.selectbox(
         "Select a city",
         ["Madrid", "Málaga", "Sevilla", "Valencia"],
         index=1,
     )
 
-    df = get_viviendas_mapa(ciudad=ciudad)
+    df = get_map_listings(city=city)
 
     if df.empty:
         st.warning("No properties are available for the selected filters.")
@@ -52,7 +52,9 @@ def render_mapa_viviendas():
 
     col3.metric(
         "Average daily price",
-        f"{df['precio_medio_diario'].mean():,.2f} €".replace(",", "X").replace(".", ",").replace("X", "."),
+        f"{df['precio_medio_diario'].mean():,.2f} €".replace(",", "X")
+        .replace(".", ",")
+        .replace("X", "."),
     )
 
     col4.metric(
@@ -62,8 +64,8 @@ def render_mapa_viviendas():
 
     st.divider()
 
-    lat_centro, lon_centro = CENTROS_CIUDAD.get(
-        ciudad,
+    center_latitude, center_longitude = CITY_CENTERS.get(
+        city,
         (df["latitud"].median(), df["longitud"].median()),
     )
 
@@ -79,8 +81,8 @@ def render_mapa_viviendas():
     )
 
     view_state = pdk.ViewState(
-        latitude=lat_centro,
-        longitude=lon_centro,
+        latitude=center_latitude,
+        longitude=center_longitude,
         zoom=11,
         pitch=0,
     )
@@ -115,8 +117,8 @@ def render_mapa_viviendas():
     )
 
     st.subheader("Property map")
-    st.pydeck_chart(deck, width="stretch", key=f"mapa-{ciudad}")
+    st.pydeck_chart(deck, width="stretch", key=f"map-{city}")
 
     st.subheader("Property details")
-    columnas_detalle = [col for col in df.columns if col != "id_vivienda"]
-    st.dataframe(df[columnas_detalle], width="stretch", hide_index=True)
+    detail_columns = [col for col in df.columns if col != "id_vivienda"]
+    st.dataframe(df[detail_columns], width="stretch", hide_index=True)

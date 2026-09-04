@@ -3,10 +3,10 @@ import plotly.express as px
 import streamlit as st
 
 from backend.queries import (
-    get_ciudades_disponibles,
-    get_barrios_mejor_valorados,
-    get_valoraciones_viviendas,
-    get_reserva_instantanea_disponibilidad,
+    get_available_cities,
+    get_best_rated_neighborhoods,
+    get_listing_ratings,
+    get_instant_booking_availability,
 )
 
 
@@ -14,12 +14,7 @@ def format_currency_dec(value):
     if pd.isna(value):
         return "-"
 
-    return (
-        f"{value:,.2f} €"
-        .replace(",", "X")
-        .replace(".", ",")
-        .replace("X", ".")
-    )
+    return f"{value:,.2f} €".replace(",", "X").replace(".", ",").replace("X", ".")
 
 
 def format_number(value):
@@ -36,7 +31,7 @@ def format_pct(value):
     return f"{value:.2f} %"
 
 
-def crear_orden_volumen_resenas(df):
+def add_review_volume_order(df):
     """
     Converts the categorical volumen_resenas field into a numeric order
     so a trend can be plotted.
@@ -44,68 +39,67 @@ def crear_orden_volumen_resenas(df):
 
     df = df.copy()
 
-    def calcular_orden(valor):
-        if pd.isna(valor):
-            return 99
+    def calculate_order(value):
+        if pd.isna(value):
+            return float("nan")
 
-        texto = str(valor).lower().strip()
+        text = str(value).lower().strip()
 
-        if "sin" in texto or texto == "0":
+        if "sin" in text or text == "0":
             return 0
 
-        if "bajo" in texto or "poca" in texto or "1" in texto:
+        if "bajo" in text or "poca" in text or "1" in text:
             return 1
 
-        if "medio" in texto or "moderado" in texto:
+        if "medio" in text or "moderado" in text:
             return 2
 
-        if "alto" in texto and "muy" not in texto:
+        if "alto" in text and "muy" not in text:
             return 3
 
-        if "muy" in texto:
+        if "muy" in text:
             return 4
 
-        return 50
+        return float("nan")
 
     df["volumen_resenas"] = df["volumen_resenas"].fillna("Unclassified")
-    df["orden_volumen"] = df["volumen_resenas"].apply(calcular_orden)
+    df["review_volume_order"] = df["volumen_resenas"].apply(calculate_order)
 
     return df
 
 
-def excluir_precios_atipicos(df):
-    precios = df["precio_medio_diario"].dropna()
-    if precios.empty:
+def exclude_price_outliers(df):
+    prices = df["precio_medio_diario"].dropna()
+    if prices.empty:
         return df.copy()
 
-    q1 = precios.quantile(0.25)
-    q3 = precios.quantile(0.75)
-    limite_superior = q3 + 1.5 * (q3 - q1)
+    q1 = prices.quantile(0.25)
+    q3 = prices.quantile(0.75)
+    upper_limit = q3 + 1.5 * (q3 - q1)
 
     return df[
-        df["precio_medio_diario"].notna()
-        & (df["precio_medio_diario"] <= limite_superior)
+        df["precio_medio_diario"].notna() & (df["precio_medio_diario"] <= upper_limit)
     ].copy()
 
 
-def crear_muestra_scatter(df, max_por_ciudad=250):
-    muestras = []
+def create_scatter_sample(df, max_per_city=250):
+    samples = []
 
-    for _, grupo in df.groupby("ciudad", dropna=False):
-        muestras.append(
-            grupo.sample(
-                n=min(len(grupo), max_por_ciudad),
+    for _, group in df.groupby("ciudad", dropna=False):
+        samples.append(
+            group.sample(
+                n=min(len(group), max_per_city),
                 random_state=42,
             )
         )
 
-    if not muestras:
+    if not samples:
         return df.copy()
 
-    return pd.concat(muestras, ignore_index=True)
+    return pd.concat(samples, ignore_index=True)
 
 
-def render_valoraciones():
+def render_ratings():
     st.title("⭐ Ratings analysis")
 
     st.markdown(
@@ -118,27 +112,27 @@ def render_valoraciones():
     st.divider()
 
     # =========================
-    # Filtros
+    # Filters
     # =========================
-    ciudades_df = get_ciudades_disponibles()
+    cities_df = get_available_cities()
 
-    if ciudades_df.empty:
+    if cities_df.empty:
         st.warning("No cities are available in the database.")
         return
 
-    ciudades = ciudades_df["ciudad"].dropna().sort_values().tolist()
+    cities = cities_df["ciudad"].dropna().sort_values().tolist()
 
     col1, col2, col3 = st.columns([2, 1, 1])
 
     with col1:
-        ciudad_seleccionada = st.selectbox(
+        selected_city = st.selectbox(
             "Select a city",
-            options=["All cities"] + ciudades,
+            options=["All cities"] + cities,
             index=0,
         )
 
     with col2:
-        limite = st.slider(
+        limit = st.slider(
             "Neighborhoods to display",
             min_value=5,
             max_value=30,
@@ -147,7 +141,7 @@ def render_valoraciones():
         )
 
     with col3:
-        min_viviendas = st.slider(
+        min_listings = st.slider(
             "Minimum properties per neighborhood",
             min_value=1,
             max_value=50,
@@ -155,136 +149,138 @@ def render_valoraciones():
             step=1,
         )
 
-    ciudad_param = (
-        None
-        if ciudad_seleccionada == "All cities"
-        else ciudad_seleccionada
-    )
+    city_filter = None if selected_city == "All cities" else selected_city
 
     # =========================
-    # Carga de datos
+    # Data loading
     # =========================
-    barrios_df = get_barrios_mejor_valorados(
-        ciudad=ciudad_param,
-        limite=limite,
-        min_viviendas=min_viviendas,
+    neighborhoods_df = get_best_rated_neighborhoods(
+        city=city_filter,
+        limit=limit,
+        min_listings=min_listings,
     )
 
-    viviendas_df = get_valoraciones_viviendas(
-        ciudad=ciudad_param,
+    listings_df = get_listing_ratings(
+        city=city_filter,
     )
 
-    reserva_df = get_reserva_instantanea_disponibilidad(
-        ciudad=ciudad_param,
+    booking_df = get_instant_booking_availability(
+        city=city_filter,
     )
 
-    if viviendas_df.empty:
+    if listings_df.empty:
         st.warning("No rating data is available for the selected filters.")
         return
 
-    viviendas_volumen_df = crear_orden_volumen_resenas(viviendas_df)
-    viviendas_precio_df = excluir_precios_atipicos(viviendas_df)
-    viviendas_scatter_df = crear_muestra_scatter(viviendas_precio_df)
+    review_volume_listings_df = add_review_volume_order(listings_df)
+    price_listings_df = exclude_price_outliers(listings_df)
+    scatter_listings_df = create_scatter_sample(price_listings_df)
 
     # =========================
-    # KPIs principales
+    # Main KPIs
     # =========================
     st.subheader("Key indicators")
 
-    puntuacion_media = viviendas_df["puntuacion_general"].mean()
-    precio_medio = viviendas_df["precio_medio_diario"].mean()
-    no_disp_media = viviendas_df["no_disponibilidad_pct"].mean()
+    average_rating = listings_df["puntuacion_general"].mean()
+    average_price = listings_df["precio_medio_diario"].mean()
+    average_unavailability = listings_df["no_disponibilidad_pct"].mean()
 
-    corr_puntuacion_precio = viviendas_precio_df["puntuacion_general"].corr(
-        viviendas_precio_df["precio_medio_diario"]
+    rating_price_correlation = price_listings_df["puntuacion_general"].corr(
+        price_listings_df["precio_medio_diario"]
     )
 
-    corr_resenas_no_disp = viviendas_volumen_df["orden_volumen"].corr(
-        viviendas_volumen_df["no_disponibilidad_pct"]
-    )
+    reviews_unavailability_correlation = review_volume_listings_df[
+        "review_volume_order"
+    ].corr(review_volume_listings_df["no_disponibilidad_pct"])
 
     col1, col2, col3, col4 = st.columns(4)
 
     col1.metric(
         "Average rating",
-        f"{puntuacion_media:.2f}" if not pd.isna(puntuacion_media) else "-",
+        f"{average_rating:.2f}" if not pd.isna(average_rating) else "-",
     )
 
     col2.metric(
         "Average price",
-        format_currency_dec(precio_medio),
+        format_currency_dec(average_price),
     )
 
     col3.metric(
         "Average unavailability",
-        format_pct(no_disp_media),
+        format_pct(average_unavailability),
     )
 
     col4.metric(
         "Rated properties",
-        format_number(len(viviendas_df)),
+        format_number(len(listings_df)),
     )
 
     col5, col6 = st.columns(2)
 
     col5.metric(
         "Rating-price correlation",
-        f"{corr_puntuacion_precio:.2f}" if not pd.isna(corr_puntuacion_precio) else "-",
+        f"{rating_price_correlation:.2f}"
+        if not pd.isna(rating_price_correlation)
+        else "-",
     )
 
     col6.metric(
         "Reviews-unavailability correlation",
-        f"{corr_resenas_no_disp:.2f}" if not pd.isna(corr_resenas_no_disp) else "-",
+        f"{reviews_unavailability_correlation:.2f}"
+        if not pd.isna(reviews_unavailability_correlation)
+        else "-",
     )
 
     st.divider()
 
     # =========================
-    # Barrios mejor valorados
+    # Highest-rated neighborhoods
     # =========================
     st.subheader("Which neighborhoods have the highest-rated properties?")
 
-    if not barrios_df.empty:
-        if ciudad_param is None:
-            barrios_df["zona"] = barrios_df["barrio"] + " (" + barrios_df["ciudad"] + ")"
+    if not neighborhoods_df.empty:
+        if city_filter is None:
+            neighborhoods_df["area_label"] = (
+                neighborhoods_df["barrio"] + " (" + neighborhoods_df["ciudad"] + ")"
+            )
         else:
-            barrios_df["zona"] = barrios_df["barrio"]
+            neighborhoods_df["area_label"] = neighborhoods_df["barrio"]
 
-        df_chart = barrios_df.sort_values("puntuacion_media", ascending=True)
+        df_chart = neighborhoods_df.sort_values("average_rating", ascending=True)
 
-        fig_barrios = px.bar(
+        neighborhoods_figure = px.bar(
             df_chart,
-            x="puntuacion_media",
-            y="zona",
+            x="average_rating",
+            y="area_label",
             orientation="h",
-            text="puntuacion_media",
-            title=f"Top {limite} neighborhoods by average rating",
+            text="average_rating",
+            title=f"Top {limit} neighborhoods by average rating",
             labels={
-                "puntuacion_media": "Average rating",
-                "zona": "Neighborhood",
+                "average_rating": "Average rating",
+                "area_label": "Neighborhood",
             },
             hover_data={
                 "num_viviendas": True,
                 "precio_medio_diario": ":.2f",
                 "disponibilidad_pct": ":.2f",
                 "no_disponibilidad_pct": ":.2f",
-                "zona": False,
+                "area_label": False,
             },
         )
 
-        fig_barrios.update_traces(
+        neighborhoods_figure.update_traces(
             texttemplate="%{text:.2f}",
             textposition="outside",
         )
 
-        fig_barrios.update_layout(
-            height=max(450, limite * 34),
+        neighborhoods_figure.update_layout(
+            height=max(450, limit * 34),
             xaxis_title="Average rating",
             yaxis_title="Neighborhood",
             margin=dict(l=20, r=20, t=70, b=20),
         )
 
-        st.plotly_chart(fig_barrios, width="stretch")
+        st.plotly_chart(neighborhoods_figure, width="stretch")
 
         st.caption(
             "The ranking only includes neighborhoods that meet the selected minimum property count."
@@ -296,16 +292,16 @@ def render_valoraciones():
     st.divider()
 
     # =========================
-    # Puntuación vs precio
+    # Rating vs price
     # =========================
     st.subheader("Is there a relationship between average rating and price?")
 
-    fig_precio = px.scatter(
-        viviendas_scatter_df,
+    price_figure = px.scatter(
+        scatter_listings_df,
         x="puntuacion_general",
         y="precio_medio_diario",
         hover_name="nombre_anuncio",
-        color="ciudad" if ciudad_param is None else None,
+        color="ciudad" if city_filter is None else None,
         color_discrete_map={
             "Madrid": "#2F7DF6",
             "Málaga": "#13B96B",
@@ -328,14 +324,14 @@ def render_valoraciones():
         },
     )
 
-    fig_precio.update_traces(
+    price_figure.update_traces(
         marker={
             "size": 7,
             "line": {"width": 0},
         }
     )
 
-    fig_precio.update_layout(
+    price_figure.update_layout(
         height=500,
         xaxis_title="Overall rating",
         yaxis_title="Average daily price (€)",
@@ -344,59 +340,63 @@ def render_valoraciones():
         margin=dict(l=20, r=20, t=70, b=20),
     )
 
-    st.plotly_chart(fig_precio, width="stretch")
+    st.plotly_chart(price_figure, width="stretch")
     st.caption(
         "Reproducible sample of up to 250 properties per city; "
         "the correlation is calculated using all valid records."
     )
 
-    if not pd.isna(corr_puntuacion_precio):
-        if corr_puntuacion_precio >= 0.4:
+    if not pd.isna(rating_price_correlation):
+        if rating_price_correlation >= 0.4:
             st.success("A positive relationship between rating and price is observed.")
-        elif corr_puntuacion_precio > 0:
+        elif rating_price_correlation > 0:
             st.info("The relationship between rating and price is positive but weak.")
-        elif corr_puntuacion_precio < 0:
-            st.warning("No positive relationship is observed; the correlation is negative.")
+        elif rating_price_correlation < 0:
+            st.warning(
+                "No positive relationship is observed; the correlation is negative."
+            )
         else:
             st.info("No clear relationship between rating and price is observed.")
 
     st.divider()
 
     # =========================
-    # Volumen de reseñas vs no disponibilidad
+    # Review volume vs unavailability
     # =========================
     st.subheader("Do properties with more reviews have higher unavailability?")
 
-    tramos_df = (
-        viviendas_volumen_df.groupby(["volumen_resenas", "orden_volumen"], observed=True)
+    review_groups_df = (
+        review_volume_listings_df.groupby(
+            ["volumen_resenas", "review_volume_order"], observed=True
+        )
         .agg(
-            num_viviendas=("id_vivienda", "nunique"),
-            no_disponibilidad_pct=("no_disponibilidad_pct", "mean"),
-            precio_medio_diario=("precio_medio_diario", "mean"),
+            listing_count=("id_vivienda", "nunique"),
+            average_unavailability=("no_disponibilidad_pct", "mean"),
+            average_daily_price=("precio_medio_diario", "mean"),
         )
         .reset_index()
-        .sort_values("orden_volumen")
+        .sort_values("review_volume_order")
     )
 
-    fig_resenas = px.line(
-        tramos_df,
+    reviews_figure = px.line(
+        review_groups_df,
         x="volumen_resenas",
-        y="no_disponibilidad_pct",
+        y="average_unavailability",
         markers=True,
         title="Average unavailability by review volume",
         labels={
             "volumen_resenas": "Review volume",
-            "no_disponibilidad_pct": "Average unavailability (%)",
+            "average_unavailability": "Average unavailability (%)",
         },
         hover_data={
-            "num_viviendas": True,
-            "precio_medio_diario": ":.2f",
+            "listing_count": True,
+            "average_daily_price": ":.2f",
         },
     )
 
-    fig_resenas.update_traces(mode="lines+markers")
+    reviews_figure.update_traces(mode="lines+markers")
 
-    fig_resenas.update_layout(
+    reviews_figure.update_layout(
         height=470,
         xaxis_title="Review volume",
         yaxis_title="Average unavailability (%)",
@@ -404,48 +404,50 @@ def render_valoraciones():
         margin=dict(l=20, r=20, t=70, b=20),
     )
 
-    st.plotly_chart(fig_resenas, width="stretch")
+    st.plotly_chart(reviews_figure, width="stretch")
 
-    if not pd.isna(corr_resenas_no_disp):
-        if corr_resenas_no_disp >= 0.4:
+    if not pd.isna(reviews_unavailability_correlation):
+        if reviews_unavailability_correlation >= 0.4:
             st.success(
                 "Properties with more reviews tend to have higher unavailability."
             )
-        elif corr_resenas_no_disp > 0:
+        elif reviews_unavailability_correlation > 0:
             st.info(
                 "The relationship between review volume and unavailability is positive but weak."
             )
-        elif corr_resenas_no_disp < 0:
+        elif reviews_unavailability_correlation < 0:
             st.warning(
                 "No positive relationship is observed; the correlation is negative."
             )
         else:
-            st.info("No clear relationship between review volume and unavailability is observed.")
+            st.info(
+                "No clear relationship between review volume and unavailability is observed."
+            )
 
     st.divider()
 
     # =========================
-    # Reserva instantánea
+    # Instant booking
     # =========================
     st.subheader("Do properties with instant booking have higher availability?")
 
-    if not reserva_df.empty:
-        reserva_melt = reserva_df.melt(
+    if not booking_df.empty:
+        booking_melt = booking_df.melt(
             id_vars=["tipo_reserva", "num_viviendas"],
             value_vars=["disponibilidad_pct", "no_disponibilidad_pct"],
             var_name="Metric",
             value_name="Percentage",
         )
 
-        reserva_melt["Metric"] = reserva_melt["Metric"].replace(
+        booking_melt["Metric"] = booking_melt["Metric"].replace(
             {
                 "disponibilidad_pct": "Availability",
                 "no_disponibilidad_pct": "Unavailability",
             }
         )
 
-        fig_reserva = px.bar(
-            reserva_melt,
+        booking_figure = px.bar(
+            booking_melt,
             x="tipo_reserva",
             y="Percentage",
             color="Metric",
@@ -458,12 +460,12 @@ def render_valoraciones():
             },
         )
 
-        fig_reserva.update_traces(
+        booking_figure.update_traces(
             texttemplate="%{text:.2f} %",
             textposition="outside",
         )
 
-        fig_reserva.update_layout(
+        booking_figure.update_layout(
             height=450,
             yaxis_range=[0, 100],
             xaxis_title="",
@@ -471,18 +473,18 @@ def render_valoraciones():
             margin=dict(l=20, r=20, t=70, b=20),
         )
 
-        st.plotly_chart(fig_reserva, width="stretch")
+        st.plotly_chart(booking_figure, width="stretch")
 
-        if len(reserva_df) >= 2:
-            mayor_disp = reserva_df.sort_values(
+        if len(booking_df) >= 2:
+            highest_availability = booking_df.sort_values(
                 "disponibilidad_pct",
                 ascending=False,
             ).iloc[0]
 
             st.info(
                 f"""
-                The group with the highest average availability is **{mayor_disp['tipo_reserva']}**
-                at **{format_pct(mayor_disp['disponibilidad_pct'])}**.
+                The group with the highest average availability is **{highest_availability["tipo_reserva"]}**
+                at **{format_pct(highest_availability["disponibilidad_pct"])}**.
                 """
             )
 
@@ -492,13 +494,13 @@ def render_valoraciones():
     st.divider()
 
     # =========================
-    # Tabla detalle
+    # Detailed table
     # =========================
     st.subheader("Detailed table of rated properties")
 
-    tabla = viviendas_df.copy()
+    table = listings_df.copy()
 
-    tabla = tabla.rename(
+    table = table.rename(
         columns={
             "ciudad": "City",
             "barrio": "Neighborhood",
@@ -512,7 +514,7 @@ def render_valoraciones():
         }
     )
 
-    columnas = [
+    columns = [
         "City",
         "Neighborhood",
         "Property",
@@ -525,7 +527,7 @@ def render_valoraciones():
     ]
 
     st.dataframe(
-        tabla[columnas],
+        table[columns],
         width="stretch",
         hide_index=True,
     )
